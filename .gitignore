@@ -52,3 +52,7 @@ tmtagsHistory
 *.sublime-project
 *.sublime-workspace
 .bundle
+
+# Custom #
+##########
+pogom.db
