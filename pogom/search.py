@@ -53,18 +53,6 @@ def generate_location_steps(initial_location, num_steps):
 
 
 def search(args):
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(module)11s] [%(levelname)7s] %(message)s')
-    # log level for http request class
-    logging.getLogger("requests").setLevel(logging.CRITICAL)
-    # log level for main pgoapi class
-    logging.getLogger("pgoapi").setLevel(logging.CRITICAL)
-    # log level for internal pgoapi class
-    logging.getLogger("rpc_api").setLevel(logging.CRITICAL)
-
-    #logging.getLogger("requests").setLevel(logging.DEBUG)
-    #logging.getLogger("pgoapi").setLevel(logging.DEBUG)
-    #logging.getLogger("rpc_api").setLevel(logging.DEBUG)
-    
     position = (48.1499762, 11.5736231, 0)
     num_steps = args.step_limit
     
