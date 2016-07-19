@@ -36,4 +36,4 @@ if __name__ == '__main__':
     start_locator_thread(args)
 
     app = Pogom(__name__)
-    app.run(debug=args.debug, host=args.host, port=args.port)
+    app.run(threaded=True, debug=args.debug, host=args.host, port=args.port)
