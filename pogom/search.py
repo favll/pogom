@@ -14,38 +14,9 @@ from geopy.geocoders import GoogleV3
 from s2sphere import CellId, LatLng
 
 from pgoapi import PGoApi
-from pgoapi.utilities import f2i, h2f
+from pgoapi.utilities import f2i, h2f, get_pos_by_name, get_cellid, encode
 
 log = logging.getLogger(__name__)
-
-
-def get_pos_by_name(location_name):
-    geolocator = GoogleV3()
-    loc = geolocator.geocode(location_name)
-
-    log.info('Your given location: %s', loc.address.encode('utf-8'))
-    log.info('lat/long/alt: %s %s %s', loc.latitude, loc.longitude, loc.altitude)
-    
-    return (loc.latitude, loc.longitude, loc.altitude)
-    
-def get_cellid(lat, long):
-    origin = CellId.from_lat_lng(LatLng.from_degrees(lat, long)).parent(15)
-    walk = [origin.id()]
-
-    # 10 before and 10 after
-    next = origin.next()
-    prev = origin.prev()
-    for i in range(10):
-        walk.append(prev.id())
-        walk.append(next.id())
-        next = next.next()
-        prev = prev.prev()
-    return ''.join(map(encode, sorted(walk)))
-
-def encode(cellid):
-    output = []
-    encoder._VarintEncoder()(output.append, cellid)
-    return ''.join(output)
 
 TIMESTAMP = "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
 REQ_SLEEP = 1
@@ -81,8 +52,8 @@ def generate_location_steps(initial_location, num_steps):
         x, y = x + dx, y + dy
 
 
-def search():
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(module)10s] [%(levelname)7s] %(message)s')
+def search(args):
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(module)11s] [%(levelname)7s] %(message)s')
     # log level for http request class
     logging.getLogger("requests").setLevel(logging.CRITICAL)
     # log level for main pgoapi class
@@ -93,21 +64,16 @@ def search():
     #logging.getLogger("requests").setLevel(logging.DEBUG)
     #logging.getLogger("pgoapi").setLevel(logging.DEBUG)
     #logging.getLogger("rpc_api").setLevel(logging.DEBUG)
-
-
     
-    num_steps = 4    
     position = (48.1499762, 11.5736231, 0)
-    auth_type = "google"
-    user = "xxx"
-    pw = "xxx"
+    num_steps = args.step_limit
     
     api = PGoApi()
     api.set_position( *position )
     
     log.info("Attempting login.")
 
-    while not api.login(auth_type, user, pw):
+    while not api.login(args.auth_service, args.username, args.password):
         log.info("Login failed. Trying again.")
         time.sleep(REQ_SLEEP)
     
