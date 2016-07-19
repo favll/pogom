@@ -31,7 +31,6 @@ if __name__ == '__main__':
     # logging.getLogger("rpc_api").setLevel(logging.DEBUG)
 
     args = get_args()
-    print args
     create_tables()
     start_locator_thread(args)
 
