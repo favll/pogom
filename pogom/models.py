@@ -100,9 +100,14 @@ def parse_map(map_dict):
                         f['last_modified_timestamp_ms'] / 1000.0),
                 }
 
-    InsertQuery(Pokemon, rows=pokemons.values()).upsert().execute()
-    InsertQuery(Pokestop, rows=pokestops.values()).upsert().execute()
-    InsertQuery(Gym, rows=gyms.values()).upsert().execute()
+    if pokemons:
+        InsertQuery(Pokemon, rows=pokemons.values()).upsert().execute()
+
+    if pokestops:
+        InsertQuery(Pokestop, rows=pokestops.values()).upsert().execute()
+
+    if gyms:
+        InsertQuery(Gym, rows=gyms.values()).upsert().execute()
 
 
 def create_tables():
