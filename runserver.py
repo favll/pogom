@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import logging
+
 from threading import Thread
 
 from pogom.app import Pogom
@@ -9,18 +11,30 @@ from pogom.utils import get_args
 from pogom.models import create_tables
 
 
-def start_locator_thread():
-    search_thread = Thread(target=search)
+def start_locator_thread(args):
+    search_thread = Thread(target=search, args=(args,))
     search_thread.daemon = True
     search_thread.name = 'search_thread'
     search_thread.start()
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(module)11s] [%(levelname)7s] %(message)s')
+
+    logging.getLogger("peewee").setLevel(logging.INFO)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("pogom.pgoapi.pgoapi").setLevel(logging.WARNING)
+    logging.getLogger("pogom.pgoapi.rpc_api").setLevel(logging.INFO)
+
+    #logging.getLogger("requests").setLevel(logging.DEBUG)
+    #logging.getLogger("pgoapi").setLevel(logging.DEBUG)
+    #logging.getLogger("rpc_api").setLevel(logging.DEBUG)
+    
+
     args = get_args()
     print args
     create_tables()
-    start_locator_thread()
+    start_locator_thread(args)
 
     app = Pogom(__name__)
     app.run()
