@@ -73,10 +73,14 @@ def search(args):
     
     log.info("Attempting login.")
 
-    while not api.login(args.auth_service, args.username, args.password):
-        log.info("Login failed. Trying again.")
-        time.sleep(REQ_SLEEP)
-    
+    try:
+        while not api.login(args.auth_service, args.username, args.password):
+            log.info("Login failed. Trying again.")
+            time.sleep(REQ_SLEEP)
+    except Exception as e:
+        log.warn(e)
+        print "ERROR"
+            
     log.info("Login successful.")
    
     i = 1.0
