@@ -22,6 +22,10 @@ class Pokemon(BaseModel):
     latitude = FloatField()
     disappear_time = DateTimeField()
 
+    @classmethod
+    def get_active(cls):
+        return Pokemon.where(disappear_time > datetime.now()).dicts()
+
 
 class Pokestop(BaseModel):
     pokestop_id = CharField(primary_key=True)
@@ -47,12 +51,12 @@ class Gym(BaseModel):
     last_modified = DateTimeField()
 
 
-def parse_dict(d):
+def parse_map(map_dict):
     pokemons = {}
     pokestops = {}
     gyms = {}
 
-    cells = d['responses']['GET_MAP_OBJECTS']['map_cells']
+    cells = map_dict['responses']['GET_MAP_OBJECTS']['map_cells']
     for cell in cells:
         for p in cell.get('wild_pokemons', []):
             pokemons[p['encounter_id']] = {
@@ -96,13 +100,9 @@ def parse_dict(d):
                         f['last_modified_timestamp_ms'] / 1000.0),
                 }
 
-    print pokemons.values()
-    db.connect()
-    iq = InsertQuery(Pokemon, rows=pokemons.values())
-    iq.upsert()
-    iq.execute()
-    # InsertQuery(Pokestop, rows=pokestops.values()).upsert().execute()
-    # InsertQuery(Gym, rows=gyms.values()).upsert().execute()
+    InsertQuery(Pokemon, rows=pokemons.values()).upsert().execute()
+    InsertQuery(Pokestop, rows=pokestops.values()).upsert().execute()
+    InsertQuery(Gym, rows=gyms.values()).upsert().execute()
 
 
 def create_tables():

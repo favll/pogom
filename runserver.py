@@ -26,10 +26,9 @@ if __name__ == '__main__':
     logging.getLogger("pogom.pgoapi.pgoapi").setLevel(logging.WARNING)
     logging.getLogger("pogom.pgoapi.rpc_api").setLevel(logging.INFO)
 
-    #logging.getLogger("requests").setLevel(logging.DEBUG)
-    #logging.getLogger("pgoapi").setLevel(logging.DEBUG)
-    #logging.getLogger("rpc_api").setLevel(logging.DEBUG)
-    
+    # logging.getLogger("requests").setLevel(logging.DEBUG)
+    # logging.getLogger("pgoapi").setLevel(logging.DEBUG)
+    # logging.getLogger("rpc_api").setLevel(logging.DEBUG)
 
     args = get_args()
     print args
