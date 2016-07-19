@@ -9,17 +9,31 @@ import logging
 import requests
 import time
 
-from google.protobuf.internal import encoder
-from geopy.geocoders import GoogleV3
-from s2sphere import CellId, LatLng
 
 from pgoapi import PGoApi
 from pgoapi.utilities import f2i, h2f, get_pos_by_name, get_cellid, encode
+from geopy.geocoders import GoogleV3
 
 log = logging.getLogger(__name__)
 
 TIMESTAMP = "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
 REQ_SLEEP = 1
+
+def get_pos_by_name(location_name):
+    prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
+    res = prog.match(location_name)
+    if res:
+        latitude, longitude, altitude = float(res.group(1)), float(res.group(2)), 0
+    else:
+        geolocator = GoogleV3()
+        loc = geolocator.geocode(location_name)
+        log.info('Your given location: %s', loc.address.encode('utf-8'))
+        latitude, longitude, altitude = loc.latitude, loc.longitude, loc.altitude
+    
+    log.info('lat/long/alt: %s  : %s  :  %s', latitude, longitude, altitude)
+    
+    return (latitude, longitude, altitude)
+    
 
 def send_map_request(api, position):
     api.set_position( *position )
@@ -53,7 +67,7 @@ def generate_location_steps(initial_location, num_steps):
 
 
 def search(args):
-    position = (48.1499762, 11.5736231, 0)
+    position = get_pos_by_name(args.location)
     num_steps = args.step_limit
     
     api = PGoApi()
@@ -61,13 +75,9 @@ def search(args):
     
     log.info("Attempting login.")
 
-    try:
-        while not api.login(args.auth_service, args.username, args.password):
-            log.info("Login failed. Trying again.")
-            time.sleep(REQ_SLEEP)
-    except Exception as e:
-        log.warn(e)
-        print "ERROR"
+    while not api.login(args.auth_service, args.username, args.password):
+        log.info("Login failed. Trying again.")
+        time.sleep(REQ_SLEEP)
             
     log.info("Login successful.")
    

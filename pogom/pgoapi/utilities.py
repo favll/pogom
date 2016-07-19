@@ -27,6 +27,9 @@ import struct
 import re
 
 from importlib import import_module
+from s2sphere import CellId, LatLng
+from geopy.geocoders import GoogleV3
+from google.protobuf.internal import encoder
 
 
 def f2i(float):
@@ -52,14 +55,22 @@ def get_class(cls):
     class_ = getattr(import_module(module_), class_)
     return class_
     
-def get_pos_by_name(location_name):
-    geolocator = GoogleV3()
-    loc = geolocator.geocode(location_name)
+import re
 
-    log.info('Your given location: %s', loc.address.encode('utf-8'))
-    log.info('lat/long/alt: %s %s %s', loc.latitude, loc.longitude, loc.altitude)
+def get_pos_by_name(location_name):
+    prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
+    res = prog.match(location_name)
+    if res:
+        latitude, longitude, altitude = res.group(0), res.group(1), 0
+    else:
+        geolocator = GoogleV3()
+        loc = geolocator.geocode(location_name)
+        log.info('Your given location: %s', loc.address.encode('utf-8'))
+        latitude, longitude, altitude = loc.latitude, loc.longitude, loc.altitude
     
-    return (loc.latitude, loc.longitude, loc.altitude)
+    log.info('lat/long/alt: %s %s %s', latitude, longitude, altitude)
+    
+    return (latitude, longitude, altitude)
     
 def get_cellid(lat, long):
     origin = CellId.from_lat_lng(LatLng.from_degrees(lat, long)).parent(15)

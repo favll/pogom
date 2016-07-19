@@ -42,7 +42,6 @@ class RpcApi:
     def __init__(self, auth_provider):
     
         self.log = logging.getLogger(__name__)
-        self.log.info(__name__)
     
         self._session = requests.session()
         self._session.headers.update({'User-Agent': 'Niantic App'})
