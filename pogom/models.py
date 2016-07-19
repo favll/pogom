@@ -15,6 +15,8 @@ class BaseModel(Model):
 
 
 class Pokemon(BaseModel):
+    # We are base64 encoding the ids delivered by the api
+    # because they are too big for sqlite to handle
     encounter_id = CharField(primary_key=True)
     spawnpoint_id = CharField()
     pokemon_id = IntegerField()
@@ -24,7 +26,10 @@ class Pokemon(BaseModel):
 
     @classmethod
     def get_active(cls):
-        return Pokemon.where(disappear_time > datetime.now()).dicts()
+        return (Pokemon
+                .select()
+                .where(Pokemon.disappear_time > datetime.now())
+                .dicts())
 
 
 class Pokestop(BaseModel):
