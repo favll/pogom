@@ -11,29 +11,13 @@ import time
 
 
 from pgoapi import PGoApi
-from pgoapi.utilities import f2i, h2f, get_pos_by_name, get_cellid, encode
-from geopy.geocoders import GoogleV3
+from pgoapi.utilities import f2i, h2f, get_cellid, encode, get_pos_by_name
 
 log = logging.getLogger(__name__)
 
 TIMESTAMP = "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
 REQ_SLEEP = 1
 
-def get_pos_by_name(location_name):
-    prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
-    res = prog.match(location_name)
-    if res:
-        latitude, longitude, altitude = float(res.group(1)), float(res.group(2)), 0
-    else:
-        geolocator = GoogleV3()
-        loc = geolocator.geocode(location_name)
-        log.info('Your given location: %s', loc.address.encode('utf-8'))
-        latitude, longitude, altitude = loc.latitude, loc.longitude, loc.altitude
-    
-    log.info('lat/long/alt: %s  : %s  :  %s', latitude, longitude, altitude)
-    
-    return (latitude, longitude, altitude)
-    
 
 def send_map_request(api, position):
     api.set_position( *position )
@@ -68,6 +52,9 @@ def generate_location_steps(initial_location, num_steps):
 
 def search(args):
     position = get_pos_by_name(args.location)
+    log.info('Parsed location is: {:.4f}/{:.4f}/{:.4f} (lat/lng/alt)'.
+             format(*position))
+
     num_steps = args.step_limit
     
     api = PGoApi()
@@ -81,9 +68,9 @@ def search(args):
             
     log.info("Login successful.")
    
-    i = 1.0
+    i = 1
     for step_location in generate_location_steps(position, num_steps):
-        log.info("Scanning step {} of {}.".format(i, num_steps**2))
+        log.info("Scanning step {:d} of {:d}.".format(i, num_steps**2))
         
         response_dict = send_map_request(api, step_location)
         while not response_dict:
@@ -93,7 +80,7 @@ def search(args):
             
         parse_map(response_dict)
         
-        log.info("Completed {:5.2f}% of scan.".format(i / num_steps**2 * 100))
+        log.info("Completed {:5.2f}% of scan.".format(float(i) / num_steps**2 * 100))
         i += 1
         time.sleep(REQ_SLEEP)
 

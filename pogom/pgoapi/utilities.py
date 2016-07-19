@@ -28,8 +28,8 @@ import re
 
 from importlib import import_module
 from s2sphere import CellId, LatLng
-from geopy.geocoders import GoogleV3
 from google.protobuf.internal import encoder
+from geopy.geocoders import GoogleV3
 
 
 def f2i(float):
@@ -49,28 +49,23 @@ def to_camel_case(value):
   c = camelcase()
   return "".join(c.next()(x) if x else '_' for x in value.split("_"))
 
-      
-def get_class(cls):
-    module_, class_ = cls.rsplit('.', 1)
-    class_ = getattr(import_module(module_), class_)
-    return class_
-    
-import re
-
 def get_pos_by_name(location_name):
     prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
     res = prog.match(location_name)
     if res:
-        latitude, longitude, altitude = res.group(0), res.group(1), 0
+        latitude, longitude, altitude = float(res.group(1)), float(res.group(2)), 0
     else:
         geolocator = GoogleV3()
         loc = geolocator.geocode(location_name)
-        log.info('Your given location: %s', loc.address.encode('utf-8'))
         latitude, longitude, altitude = loc.latitude, loc.longitude, loc.altitude
     
-    log.info('lat/long/alt: %s %s %s', latitude, longitude, altitude)
-    
     return (latitude, longitude, altitude)
+    
+
+def get_class(cls):
+    module_, class_ = cls.rsplit('.', 1)
+    class_ = getattr(import_module(module_), class_)
+    return class_
     
 def get_cellid(lat, long):
     origin = CellId.from_lat_lng(LatLng.from_degrees(lat, long)).parent(15)

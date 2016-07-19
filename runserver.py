@@ -22,8 +22,8 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(module)11s] [%(levelname)7s] %(message)s')
 
     logging.getLogger("peewee").setLevel(logging.INFO)
-    logging.getLogger("requests").setLevel(logging.DEBUG)
-    logging.getLogger("pogom.pgoapi.pgoapi").setLevel(logging.INFO)
+    logging.getLogger("requests").setLevel(logging.WARNING)
+    logging.getLogger("pogom.pgoapi.pgoapi").setLevel(logging.WARNING)
     logging.getLogger("pogom.pgoapi.rpc_api").setLevel(logging.INFO)
 
     #logging.getLogger("requests").setLevel(logging.DEBUG)
