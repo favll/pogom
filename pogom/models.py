@@ -5,8 +5,10 @@ from peewee import Model, SqliteDatabase, InsertQuery, IntegerField,\
                    CharField, FloatField, BooleanField, DateTimeField
 from datetime import datetime
 from base64 import b64encode
+import logging
 
 db = SqliteDatabase('pogom.db')
+log = logging.getLogger(__name__)
 
 
 class BaseModel(Model):
@@ -104,14 +106,17 @@ def parse_map(map_dict):
                     'last_modified': datetime.fromtimestamp(
                         f['last_modified_timestamp_ms'] / 1000.0),
                 }
-
+    
     if pokemons:
+        log.info("Upserting {} pokemon".format(len(pokemons)))
         InsertQuery(Pokemon, rows=pokemons.values()).upsert().execute()
 
-    if pokestops:
-        InsertQuery(Pokestop, rows=pokestops.values()).upsert().execute()
+    #if pokestops:
+    #    log.info("Upserting {} pokestops".format(len(pokestops)))
+    #    InsertQuery(Pokestop, rows=pokestops.values()).upsert().execute()
 
     if gyms:
+        log.info("Upserting {} gyms".format(len(gyms)))
         InsertQuery(Gym, rows=gyms.values()).upsert().execute()
 
 
