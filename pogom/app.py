@@ -6,10 +6,10 @@ import calendar
 from flask import Flask, jsonify, render_template, request
 from flask.json import JSONEncoder
 from datetime import datetime
-from s2sphere import *
 
 from . import config
-from .models import Pokemon, Gym, Pokestop
+from .models import Pokemon, Gym, Pokestop, SearchConfig
+from .utils import coords_from_point
 
 log = logging.getLogger(__name__)
 
@@ -24,34 +24,31 @@ class Pogom(Flask):
 
     def fullmap(self):
         return render_template('map.html',
-                               lat=config['ORIGINAL_LATITUDE'],
-                               lng=config['ORIGINAL_LONGITUDE'],
+                               lat=SearchConfig.ORIGINAL_LATITUDE,
+                               lng=SearchConfig.ORIGINAL_LONGITUDE,
                                gmaps_key=config['GOOGLEMAPS_KEY'])
 
     def map_data(self):
         l = []
         if request.args.get('pokemon', 'true') == 'true':
             l.extend(Pokemon.get_active())
-        
+
         if request.args.get('pokestops', 'false') == 'true':
             l.extend([p for p in Pokestop.select().dicts()])
-        
+
         if request.args.get('pokestops', 'true') == 'true':
-            l.extend([p for p in Pokestop.select().dicts()]) #TODO
-    
+            l.extend([p for p in Pokestop.select().dicts()])  # TODO
+
         if request.args.get('gyms', 'true') == 'true':
             l.extend([g for g in Gym.select().dicts()])
-    
-        return jsonify(l)
-        
-    def cover(self):
-        l = [[  coords_from_point(cell.get_vertex(i))   for i in range(4) ]
-                for cell in config['COVER']]
+
         return jsonify(l)
 
-def coords_from_point(p):
-    coords = LatLng.from_point(p)._LatLng__coords
-    return {'lat': math.degrees(coords[0]), 'lng': math.degrees(coords[1])}
+    def cover(self):
+        l = [[coords_from_point(cell.get_vertex(i)) for i in xrange(4)]
+             for cell in SearchConfig.COVER]
+        return jsonify(l)
+
 
 class CustomJSONEncoder(JSONEncoder):
 
