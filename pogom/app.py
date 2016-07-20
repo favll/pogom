@@ -51,7 +51,7 @@ class Pogom(Flask):
 
 def coords_from_point(p):
     coords = LatLng.from_point(p)._LatLng__coords
-    return math.degrees(coords[0]), math.degrees(coords[1])
+    return {'lat': math.degrees(coords[0]), 'lng': math.degrees(coords[1])}
 
 class CustomJSONEncoder(JSONEncoder):
 
