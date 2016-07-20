@@ -91,7 +91,16 @@ function clearStaleMarkers(){
 };
 
 function updateMap() {
-    $.getJSON("/map-data", function(result){
+    console.log({'pokemon': document.getElementById('pokemon-checkbox').checked, "AF": "asdf"})
+    $.ajax({
+        url: "/map-data",
+        type: 'GET',
+        data: {'pokemon': document.getElementById('pokemon-checkbox').checked,
+               'pokestops': document.getElementById('pokestops-checkbox').checked,
+               'pokestops-lured': document.getElementById('pokestops-lured-checkbox').checked,
+               'gyms': document.getElementById('gyms-checkbox').checked},
+        dataType: "json"
+    }).done(function(result){
         $.each(result, function(i, item){
             
             if (item.encounter_id in map_objects) {

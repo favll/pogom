@@ -28,16 +28,16 @@ class Pogom(Flask):
 
     def map_data(self):
         l = []
-        if request.args.get('pokemons', 'all') == 'all':
+        if request.args.get('pokemon', 'true') == 'true':
             l.extend(Pokemon.get_active())
         
-        if request.args.get('pokestops', 'none') == 'all':
+        if request.args.get('pokestops', 'false') == 'true':
             l.extend([p for p in Pokestop.select().dicts()])
         
-        if request.args.get('pokestops', 'none') == 'lured':
+        if request.args.get('pokestops', 'true') == 'true':
             l.extend([p for p in Pokestop.select().dicts()]) #TODO
     
-        if request.args.get('gyms', 'none') == 'all':
+        if request.args.get('gyms', 'true') == 'true':
             l.extend([g for g in Gym.select().dicts()])
     
         return jsonify(l)
