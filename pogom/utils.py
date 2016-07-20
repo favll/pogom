@@ -15,6 +15,10 @@ import s2sphere as s2
 from . import config
 
 
+def coords_of_cell(cell):
+    return coords_from_point(cell.get_center())
+
+    
 def coords_from_point(p):
     coords = s2.LatLng.from_point(p)._LatLng__coords
     return {'lat': math.degrees(coords[0]), 'lng': math.degrees(coords[1])}
@@ -32,7 +36,7 @@ def get_args():
     parser.add_argument('-u', '--username', help='Username', required=True)
     parser.add_argument('-p', '--password', help='Password', required=False)
     parser.add_argument('-l', '--location', type=parse_unicode, help='Location, can be an address or coordinates', required=True)
-    parser.add_argument('-st', '--step-limit', help='Steps', required=True, type=int)
+    parser.add_argument('-r', '--radius', help='Search radius [m]', required=True, type=int)
     group = parser.add_mutually_exclusive_group(required=False)
     parser.add_argument('-H', '--host', help='Set web server listening host', default='127.0.0.1')
     parser.add_argument('-P', '--port', type=int, help='Set web server listening port', default=5000)
