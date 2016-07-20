@@ -106,7 +106,7 @@ def parse_map(map_dict):
                     'last_modified': datetime.fromtimestamp(
                         f['last_modified_timestamp_ms'] / 1000.0),
                 }
-    
+
     if pokemons:
         log.info("Upserting {} pokemon".format(len(pokemons)))
         InsertQuery(Pokemon, rows=pokemons.values()).upsert().execute()
