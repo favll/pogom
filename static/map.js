@@ -42,26 +42,21 @@ function gymLabel(team_name, team_id, gym_points) {
     var gym_color = [ "0, 0, 0, .4", "74, 138, 202, .6", "240, 68, 58, .6", "254, 217, 40, .6" ];
     var str;
     if (team_name == 0) {
-        str = '\
-            <div><center>\
-            <div>\
-                <b style="color:rgba(' + gym_color[team_id] + ')">' + team_name + '</b><br>\
-            </div>\
-            </center></div>';
+        str = `<div><center>
+            <div>
+                <b style='color:rgba(${gym_color[team_id]})'>${team_name}</b><br>
+            </div>
+            </center></div>`;
     } else {
-        str = '\
-            <div><center>\
-            <div>\
-                Gym owned by:\
-            </div>\
-            <div>\
-                <b style="color:rgba(' + gym_color[team_id] + ')">Team ' + team_name + '</b><br>\
-                <img height="100px" src="/static/forts/' + team_name + '_large.png"> \
-            </div>\
-            <div>\
-                Prestige: ' + gym_points + '\
-            </div>\
-            </center></div>';
+        str = `
+            <div><center>
+            <div style='padding-bottom: 2px'>Gym owned by:</div>
+            <div>
+                <b style='color:rgba(${gym_color[team_id]})'>Team ${team_name}</b><br>
+                <img height='70px' style='padding: 5px;' src='/static/forts/${team_name}_large.png'> 
+            </div>
+            <div>Prestige: ${gym_points}</div>
+            </center></div>`;
     }
 
     return str;
@@ -149,10 +144,13 @@ function updateMap() {
     }).done(function(result){
         
         $.each(result.pokemons, function(i, item){
-            if (item.encounter_id in map_pokemons) {
-                // do nothing 
+            if (!document.getElementById('pokemon-checkbox').checked) {
+                return false; // in case the checkbox was unchecked in the meantime.
             }
-            else { // add marker to map and item to dict
+
+            if (!(item.encounter_id in map_pokemons)) {
+                // add marker to map and item to dict
+                if (item.marker) item.marker.setMap(null);
                 item.marker = setupPokemonMarker(item);
                 map_pokemons[item.encounter_id] = item;
             }
@@ -160,9 +158,14 @@ function updateMap() {
         });
         
         $.each(result.gyms, function(i, item){
+            if (!document.getElementById('gyms-checkbox').checked) {
+                return false; // in case the checkbox was unchecked in the meantime.
+            }
+            
             if (item.gym_id in map_gyms) {
                 // if team has changed, create new marker (new icon)
-                if (map_gyms[item.gym_id].team_id == item.team_id) {
+                if (map_gyms[item.gym_id].team_id != item.team_id) {
+                    map_gyms[item.gym_id].marker.setMap(null);
                     map_gyms[item.gym_id].marker = setupGymMarker(item);
                 } else { // if it hasn't changed generate new label only (in case prestige has changed)
                     map_gyms[item.gym_id].marker.infoWindow = new google.maps.InfoWindow({
@@ -172,6 +175,7 @@ function updateMap() {
                 }
             }
             else { // add marker to map and item to dict
+                if (item.marker) item.marker.setMap(null);
                 item.marker = setupGymMarker(item);
                 map_gyms[item.gym_id] = item;
             }
@@ -184,6 +188,30 @@ function updateMap() {
 window.setInterval(updateMap, 5000);
 updateMap();
 
+document.getElementById('gyms-checkbox').onclick = function() {
+    console.log("onclick;");
+    if(this.checked) {
+        updateMap();
+    } else {
+        $.each(map_gyms, function(key, value) {
+            map_gyms[key].marker.setMap(null);
+        });
+        map_gyms = {}
+    }
+};
+
+$('#pokemon-checkbox').change(function() {
+    if(this.checked) {
+        updateMap();
+    } else {
+        $.each(map_pokemons, function(key, value) {
+            map_pokemons[key].marker.setMap(null);
+        });
+        map_pokemons = {}
+    }
+});
+
+    
 var coverage;
 function displayCoverage() {
     $.getJSON("/cover", {format: "json"}).done(function(data) {        

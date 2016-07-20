@@ -134,15 +134,26 @@ def parse_map(map_dict):
 
     if pokemons:
         log.info("Upserting {} pokemon".format(len(pokemons)))
-        InsertQuery(Pokemon, rows=pokemons.values()).upsert().execute()
+        bulk_upsert(Pokemon, pokemons)
 
     if pokestops:
         log.info("Upserting {} pokestops".format(len(pokestops)))
-        InsertQuery(Pokestop, rows=pokestops.values()).upsert().execute()
+        bulk_upsert(Pokestop, pokestops)
 
     if gyms:
         log.info("Upserting {} gyms".format(len(gyms)))
-        InsertQuery(Gym, rows=gyms.values()).upsert().execute()
+        bulk_upsert(Gym, gyms)
+        
+def bulk_upsert(cls, data):
+    num_rows = len(data.values())
+    i = 0
+    step = 50
+    
+    while i < num_rows:
+        log.debug("Inserting items {} to {}".format(i, min(i+step, num_rows)))
+        InsertQuery(cls, rows=data.values()[i:min(i+step, num_rows)]).upsert().execute()
+        i+=step
+        
 
 
 def create_tables():
