@@ -40,7 +40,7 @@ $.getJSON("/pokemons", function(result){
         });
         
         marker.infoWindow = new google.maps.InfoWindow({
-            content: pokemonLabel("Pikachu", 1468979767000, item.pokemon_id, item.disappear_time, item.latitude, item.longitude)
+            content: pokemonLabel("Pikachu", item.disappear_time, item.pokemon_id, item.disappear_time, item.latitude, item.longitude)
         });
         
         marker.addListener('click', function() {
