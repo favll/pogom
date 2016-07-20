@@ -18,9 +18,13 @@ class Pogom(Flask):
     def __init__(self, *args, **kwargs):
         super(Pogom, self).__init__(*args, **kwargs)
         self.json_encoder = CustomJSONEncoder
-        self.route("/", methods=['GET'])(self.fullmap)
-        self.route("/map-data", methods=['GET'])(self.map_data)
-        self.route("/cover", methods=['GET'])(self.cover)
+        self.route('/', methods=['GET'])(self.fullmap)
+        self.route('/map-data', methods=['GET'])(self.map_data)
+        self.route('/cover', methods=['GET'])(self.cover)
+        self.route('/pokemon', methods=['GET'])(self.pokemon)
+
+    def pokemon(self):
+        return jsonify([p for p in Pokemon.get_active()])
 
     def fullmap(self):
         return render_template('map.html',
