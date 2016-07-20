@@ -24,6 +24,10 @@ class BaseModel(Model):
     class Meta:
         database = db
 
+    @classmethod
+    def get_all(cls):
+        return [m for m in cls.select().dicts()]
+
 
 class Pokemon(BaseModel):
     # We are base64 encoding the ids delivered by the api

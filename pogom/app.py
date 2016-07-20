@@ -21,10 +21,6 @@ class Pogom(Flask):
         self.route('/', methods=['GET'])(self.fullmap)
         self.route('/map-data', methods=['GET'])(self.map_data)
         self.route('/cover', methods=['GET'])(self.cover)
-        self.route('/pokemon', methods=['GET'])(self.pokemon)
-
-    def pokemon(self):
-        return jsonify([p for p in Pokemon.get_active()])
 
     def fullmap(self):
         return render_template('map.html',
@@ -33,20 +29,19 @@ class Pogom(Flask):
                                gmaps_key=config['GOOGLEMAPS_KEY'])
 
     def map_data(self):
-        l = []
+        d = {}
         if request.args.get('pokemon', 'true') == 'true':
-            l.extend(Pokemon.get_active())
+            d['pokemons'] = Pokemon.get_active()
 
         if request.args.get('pokestops', 'false') == 'true':
-            l.extend([p for p in Pokestop.select().dicts()])
+            d['pokestops'] = Pokestop.get_all()
 
-        if request.args.get('pokestops', 'true') == 'true':
-            l.extend([p for p in Pokestop.select().dicts()])  # TODO
+        # TODO: Lured pokestops
 
         if request.args.get('gyms', 'true') == 'true':
-            l.extend([g for g in Gym.select().dicts()])
+            d['gyms'] = Gym.get_all()
 
-        return jsonify(l)
+        return jsonify(d)
 
     def cover(self):
         l = [[coords_from_point(cell.get_vertex(i)) for i in xrange(4)]
