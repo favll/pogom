@@ -19,7 +19,7 @@ function pokemonLabel(name, disappear_time, id, disappear_time, latitude, longit
                     target='_blank' title='View in Maps'>Get Directions</a>
         </div>`;
     return label;
-}
+};
 
 
 var map;
@@ -30,25 +30,55 @@ function initMap() {
   });
 }
 
-$.getJSON("/pokemons", function(result){
-    $.each(result, function(i, item){
-        
-        var marker = new google.maps.Marker({
-            position: {lat: item.latitude, lng: item.longitude},
-            map: map,
-            icon: 'static/icons/'+item.pokemon_id+'.png'
-        });
-        
-        marker.infoWindow = new google.maps.InfoWindow({
-            content: pokemonLabel(item.pokemon_name, item.disappear_time, item.pokemon_id, item.disappear_time, item.latitude, item.longitude)
-        });
-        
-        marker.addListener('click', function() {
-            marker.infoWindow.open(map, marker);
-        });
+map_objects = {} // dict containing all markers (pokemon, stops, gyms) on the map.
 
-        console.log(item.latitude);
+
+function setupPokemonMarker(item) {
+    var marker = new google.maps.Marker({
+        position: {lat: item.latitude, lng: item.longitude},
+        map: map,
+        icon: 'static/icons/'+item.pokemon_id+'.png'
     });
-});
+    
+    item.disappear_time -= 7200000 // TODO!
+    marker.infoWindow = new google.maps.InfoWindow({
+        content: pokemonLabel(item.pokemon_name, item.disappear_time, item.pokemon_id, item.disappear_time, item.latitude, item.longitude)
+    });
+    
+    marker.addListener('click', function() {
+        marker.infoWindow.open(map, marker);
+    });
+    return marker;
+};
 
+function clearStaleMarkers(){
+    $.each(map_objects, function(key, value) {
+        
+        if (map_objects[key]['disappear_time'] < new Date().getTime()) {
+            map_objects[key].marker.setMap(null);
+            console.log("removing marker with key "+key);
+            delete map_objects[key];
+        }
+    });
+};
 
+function updateMap() {
+    console.log("update");
+    $.getJSON("/pokemons", function(result){
+        $.each(result, function(i, item){
+            
+            if (item.encounter_id in map_objects) {
+                // do nothing 
+            }
+            else { // add marker to map and item to dict
+                item.marker = setupPokemonMarker(item);
+                map_objects[item.encounter_id] = item;
+            }
+            
+        });
+        clearStaleMarkers();
+    });
+};
+
+window.setInterval(updateMap, 5000);
+updateMap();
