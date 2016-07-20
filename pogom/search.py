@@ -28,10 +28,10 @@ def set_cover():
     coords = s2.LatLng(
         math.radians(SearchConfig.ORIGINAL_LATITUDE),
         math.radians(SearchConfig.ORIGINAL_LONGITUDE))
-    
+
     # alternate form of 1-cos(asin(x))
     height = 1 - math.sqrt(1 - (float(SearchConfig.RADIUS)/6730000)**2 )
-    
+
     cap = s2.Cap.from_axis_height(coords.to_point(), height)
     log.info(str(coords))
 
@@ -109,9 +109,6 @@ def search(args):
             log.info('Map Download failed. Trying again.')
             response_dict = send_map_request(api, step_location)
             time.sleep(REQ_SLEEP)
-            
-        with open("resp.json", "w") as f:
-            f.write(json.dumps(response_dict))
 
         try:
             parse_map(response_dict)
