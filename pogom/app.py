@@ -14,7 +14,7 @@ class Pogom(Flask):
         self.route("/pokestops", methods=['GET'])(self.pokestops)
 
     def fullmap(self):
-        return render_template('map.html')
+        return render_template('map.html', lat=6.0, lng=7.0)
 
     def pokemons(self):
         return jsonify([p for p in Pokemon.get_active()])
