@@ -7,7 +7,7 @@ from peewee import Model, SqliteDatabase, InsertQuery, IntegerField,\
 from datetime import datetime
 from base64 import b64encode
 
-from pogom.utils import get_pokemon_name
+from .utils import get_pokemon_name
 
 
 db = SqliteDatabase('pogom.db')

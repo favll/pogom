@@ -40,5 +40,5 @@ if __name__ == '__main__':
         insert_mock_data(args.location, 6)
 
     app = Pogom(__name__)
-    config['root_path'] = app.root_path
+    config['ROOT_PATH'] = app.root_path
     app.run(threaded=True, debug=args.debug, host=args.host, port=args.port)

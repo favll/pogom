@@ -6,8 +6,8 @@ from flask import Flask, jsonify, render_template
 from flask.json import JSONEncoder
 from datetime import datetime
 
-from pogom import config
-from pogom.models import Pokemon, Gym, Pokestop
+from . import config
+from .models import Pokemon, Gym, Pokestop
 
 
 class Pogom(Flask):
@@ -21,8 +21,8 @@ class Pogom(Flask):
 
     def fullmap(self):
         return render_template('map.html',
-                               lat=config['original_latitude'],
-                               lng=config['original_longitude'])
+                               lat=config['ORIGINAL_LATITUDE'],
+                               lng=config['ORIGINAL_LONGITUDE'])
 
     def pokemons(self):
         return jsonify(Pokemon.get_active())

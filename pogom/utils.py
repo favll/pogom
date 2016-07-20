@@ -10,7 +10,7 @@ import os
 import json
 from datetime import datetime, timedelta
 
-from pogom import config
+from . import config
 
 
 def parse_unicode(bytestring):
@@ -50,8 +50,8 @@ def get_args():
 
 
 def insert_mock_data(location, num_pokemons):
-    from pogom.models import Pokemon
-    from pogom.search import generate_location_steps
+    from .models import Pokemon
+    from .search import generate_location_steps
 
     prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
     res = prog.match(location)
@@ -72,9 +72,9 @@ def insert_mock_data(location, num_pokemons):
 def get_pokemon_name(pokemon_id):
     if not hasattr(get_pokemon_name, 'names'):
         file_path = os.path.join(
-            config['root_path'],
-            config['locales_dir'],
-            'pokemon.{}.json'.format(config['locale']))
+            config['ROOT_PATH'],
+            config['LOCALES_DIR'],
+            'pokemon.{}.json'.format(config['LOCALE']))
 
         with open(file_path, 'r') as f:
             get_pokemon_name.names = json.loads(f.read())

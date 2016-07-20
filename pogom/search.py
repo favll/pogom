@@ -12,8 +12,8 @@ import time
 from pgoapi import PGoApi
 from pgoapi.utilities import f2i, h2f, get_cellid, encode, get_pos_by_name
 
-from pogom import config
-from pogom.models import parse_map
+from . import config
+from .models import parse_map
 
 log = logging.getLogger(__name__)
 
@@ -47,8 +47,8 @@ def search(args):
     log.info('Parsed location is: {:.4f}/{:.4f}/{:.4f} (lat/lng/alt)'.
              format(*position))
 
-    config['original_latitude'] = position[0]
-    config['original_longitude'] = position[1]
+    config['ORIGINAL_LATITUDE'] = position[0]
+    config['ORIGINAL_LONGITUDE'] = position[1]
 
     num_steps = args.step_limit
 
