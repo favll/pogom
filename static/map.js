@@ -1,4 +1,14 @@
 
+
+var map;
+function initMap() {
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: {lat: center_lat, lng: center_lng},
+    zoom: 16
+  });
+};
+
+
 function pokemonLabel(name, disappear_time, id, disappear_time, latitude, longitude) {
     disappear_date = new Date(disappear_time)
     let pad = number => number <= 99 ? ("0"+number).slice(-2) : number;
@@ -22,13 +32,6 @@ function pokemonLabel(name, disappear_time, id, disappear_time, latitude, longit
 };
 
 
-var map;
-function initMap() {
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: center_lat, lng: center_lng},
-    zoom: 16
-  });
-}
 
 map_objects = {} // dict containing all markers (pokemon, stops, gyms) on the map.
 
@@ -47,7 +50,27 @@ function setupPokemonMarker(item) {
     
     marker.addListener('click', function() {
         marker.infoWindow.open(map, marker);
+        updateLabelDiffTime();
+        marker.persist = true;
     });
+    
+    google.maps.event.addListener(marker.infoWindow,'closeclick',function(){
+        marker.persist = null;
+    });
+
+    marker.addListener('mouseover', function() {
+        console.log("mouseover");
+        marker.infoWindow.open(map, marker);
+        updateLabelDiffTime();
+    });
+    
+    marker.addListener('mouseout', function() {
+        console.log("mouseover");
+        if (!marker.persist) {
+            marker.infoWindow.close();
+        }
+    });
+
     return marker;
 };
 
@@ -82,3 +105,33 @@ function updateMap() {
 
 window.setInterval(updateMap, 5000);
 updateMap();
+
+
+var updateLabelDiffTime = function() {
+    $('.label-countdown').each(function (index, element) {
+        var disappearsAt = new Date(parseInt(element.getAttribute("disappears-at")));
+        var now = new Date();
+        
+        var difference = Math.abs(disappearsAt - now);
+        var hours = Math.floor(difference / 36e5);
+        var minutes = Math.floor((difference - (hours * 36e5)) / 6e4);
+        var seconds = Math.floor((difference - (hours * 36e5) - (minutes * 6e4)) / 1e3);
+        
+        if(disappearsAt < now){
+            timestring = "(expired)";
+        } 
+        else {
+            timestring = "(";
+            if(hours > 0)
+                timestring = hours + "h";
+            
+            timestring += ("0" + minutes).slice(-2) + "m";
+            timestring += ("0" + seconds).slice(-2) + "s";
+            timestring += ")";
+        }
+
+        $(element).text(timestring)
+    });
+};
+
+window.setInterval(updateLabelDiffTime, 1000);
