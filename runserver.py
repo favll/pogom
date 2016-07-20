@@ -5,6 +5,7 @@ import logging
 
 from threading import Thread
 
+from pogom import config
 from pogom.app import Pogom
 from pogom.search import search
 from pogom.utils import get_args, insert_mock_data
@@ -39,4 +40,5 @@ if __name__ == '__main__':
         insert_mock_data(args.location, 6)
 
     app = Pogom(__name__)
+    config['root_path'] = app.root_path
     app.run(threaded=True, debug=args.debug, host=args.host, port=args.port)

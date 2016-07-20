@@ -6,10 +6,11 @@ import getpass
 import argparse
 import re
 import uuid
+import os
+import json
 from datetime import datetime, timedelta
 
-from .models import Pokemon
-from .search import generate_location_steps
+from pogom import config
 
 
 def parse_unicode(bytestring):
@@ -28,7 +29,7 @@ def get_args():
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('-i', '--ignore', help='Comma-separated list of Pokémon names or IDs to ignore')
     group.add_argument('-o', '--only', help='Comma-separated list of Pokémon names or IDs to search')
-    parser.add_argument('-ar', '--auto_refresh', help='Enables an autorefresh that behaves the same as'
+    parser.add_argument('-ar', '--auto-refresh', help='Enables an autorefresh that behaves the same as'
                         ' a page reload. Needs an integer value for the amount of seconds')
     parser.add_argument('-dp', '--display-pokestops', help='Display pokéstops', action='store_true', default=False)
     parser.add_argument('-dl', '--display-lured', help='Display only lured pokéstop', action='store_true', default=False)
@@ -49,6 +50,9 @@ def get_args():
 
 
 def insert_mock_data(location, num_pokemons):
+    from pogom.models import Pokemon
+    from pogom.search import generate_location_steps
+
     prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
     res = prog.match(location)
     latitude, longitude = float(res.group(1)), float(res.group(2))
@@ -63,3 +67,16 @@ def insert_mock_data(location, num_pokemons):
                        latitude=locations[i][0],
                        longitude=locations[i][1],
                        disappear_time=disappear_time)
+
+
+def get_pokemon_name(pokemon_id):
+    if not hasattr(get_pokemon_name, 'names'):
+        file_path = os.path.join(
+            config['root_path'],
+            config['locales_dir'],
+            'pokemon.{}.json'.format(config['locale']))
+
+        with open(file_path, 'r') as f:
+            get_pokemon_name.names = json.loads(f.read())
+
+    return get_pokemon_name.names[str(pokemon_id)]

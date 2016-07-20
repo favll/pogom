@@ -21,7 +21,7 @@ class Pogom(Flask):
         return render_template('map.html', lat=6.0, lng=7.0)
 
     def pokemons(self):
-        return jsonify([p for p in Pokemon.get_active()])
+        return jsonify(Pokemon.get_active())
 
     def pokestops(self):
         return jsonify([p for p in Pokestop.select().dicts()])

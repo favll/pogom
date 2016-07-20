@@ -1,11 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import logging
 from peewee import Model, SqliteDatabase, InsertQuery, IntegerField,\
                    CharField, FloatField, BooleanField, DateTimeField
 from datetime import datetime
 from base64 import b64encode
-import logging
+
+from pogom.utils import get_pokemon_name
+
 
 db = SqliteDatabase('pogom.db')
 log = logging.getLogger(__name__)
@@ -28,10 +31,17 @@ class Pokemon(BaseModel):
 
     @classmethod
     def get_active(cls):
-        return (Pokemon
-                .select()
-                .where(Pokemon.disappear_time > datetime.now())
-                .dicts())
+        query = (Pokemon
+                 .select()
+                 .where(Pokemon.disappear_time > datetime.now())
+                 .dicts())
+
+        pokemons = []
+        for p in query:
+            p['pokemon_name'] = get_pokemon_name(p['pokemon_id'])
+            pokemons.append(p)
+
+        return pokemons
 
 
 class Pokestop(BaseModel):
