@@ -28,7 +28,11 @@ def set_cover():
     coords = s2.LatLng(
         math.radians(SearchConfig.ORIGINAL_LATITUDE),
         math.radians(SearchConfig.ORIGINAL_LONGITUDE))
-    cap = s2.Cap.from_axis_height(coords.to_point(), 0.000000002)
+    
+    # alternate form of 1-cos(asin(x))
+    height = 1 - math.sqrt(1 - (float(SearchConfig.RADIUS)/6730000)**2 )
+    
+    cap = s2.Cap.from_axis_height(coords.to_point(), height)
     log.info(str(coords))
 
     coverer = s2.RegionCoverer()
@@ -40,13 +44,14 @@ def set_cover():
     SearchConfig.COVER = cover
 
 
-def set_location(location):
+def set_location(location, radius):
     position = get_pos_by_name(location)
     log.info('Parsed location is: {:.4f}/{:.4f}/{:.4f} (lat/lng/alt)'.
              format(*position))
 
     SearchConfig.ORIGINAL_LATITUDE = position[0]
     SearchConfig.ORIGINAL_LONGITUDE = position[1]
+    SearchConfig.RADIUS = radius
 
 
 def send_map_request(api, position):
