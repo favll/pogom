@@ -35,7 +35,7 @@ def generate_location_steps(initial_location, num_steps):
     while -num_steps / 2 < x <= num_steps / 2 and -num_steps / 2 < y <= num_steps / 2:
         yield (x * 0.0025 + initial_location[0], y * 0.0025 + initial_location[1], 0)
 
-        if x == y or x < 0 and x == -y or x > 0 and x == 1 - y:
+        if x == y or (x < 0 and x == -y) or (x > 0 and x == 1 - y):
             dx, dy = -dy, dx
 
         x, y = x + dx, y + dy
