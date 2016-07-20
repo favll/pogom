@@ -11,6 +11,7 @@ from pogom.search import search_loop
 from pogom.utils import get_args, insert_mock_data
 from pogom.models import create_tables
 from pogom.pgoapi.utilities import get_pos_by_name
+from s2sphere import *
 
 log = logging.getLogger(__name__)
 
@@ -27,8 +28,8 @@ if __name__ == '__main__':
 
     logging.getLogger("peewee").setLevel(logging.INFO)
     logging.getLogger("requests").setLevel(logging.WARNING)
-    logging.getLogger("pogom.pgoapi.pgoapi").setLevel(logging.WARNING)
-    logging.getLogger("pogom.pgoapi.rpc_api").setLevel(logging.INFO)
+    logging.getLogger("pogom.pgoapi.pgoapi").setLevel(logging.INFO)
+    logging.getLogger("pogom.pgoapi.rpc_api").setLevel(logging.CRITICAL)
 
     args = get_args()
     create_tables()
@@ -39,6 +40,18 @@ if __name__ == '__main__':
 
     config['ORIGINAL_LATITUDE'] = position[0]
     config['ORIGINAL_LONGITUDE'] = position[1]
+    
+    coords = LatLng(math.radians(position[0]), math.radians(position[1]))
+    cap = Cap.from_axis_height(coords.to_point(), 0.00000001)
+    log.info(str(coords))
+
+    coverer = RegionCoverer()
+    coverer.min_level = 15
+    coverer.max_level = 15
+    coverer.max_cells = 200
+
+    cover = [ Cell(cell_id) for cell_id in coverer.get_covering(cap)]
+    config['COVER'] = cover
 
 
     if not args.mock:

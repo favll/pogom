@@ -6,6 +6,7 @@ import calendar
 from flask import Flask, jsonify, render_template, request
 from flask.json import JSONEncoder
 from datetime import datetime
+from s2sphere import *
 
 from . import config
 from .models import Pokemon, Gym, Pokestop
@@ -19,6 +20,7 @@ class Pogom(Flask):
         self.json_encoder = CustomJSONEncoder
         self.route("/", methods=['GET'])(self.fullmap)
         self.route("/map-data", methods=['GET'])(self.map_data)
+        self.route("/cover", methods=['GET'])(self.cover)
 
     def fullmap(self):
         return render_template('map.html',
@@ -41,7 +43,15 @@ class Pogom(Flask):
             l.extend([g for g in Gym.select().dicts()])
     
         return jsonify(l)
+        
+    def cover(self):
+        l = [[  coords_from_point(cell.get_vertex(i))   for i in range(4) ]
+                for cell in config['COVER']]
+        return jsonify(l)
 
+def coords_from_point(p):
+    coords = LatLng.from_point(p)._LatLng__coords
+    return math.degrees(coords[0]), math.degrees(coords[1])
 
 class CustomJSONEncoder(JSONEncoder):
 
