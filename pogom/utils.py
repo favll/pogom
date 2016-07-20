@@ -8,9 +8,16 @@ import re
 import uuid
 import os
 import json
+import math
 from datetime import datetime, timedelta
+import s2sphere as s2
 
 from . import config
+
+
+def coords_from_point(p):
+    coords = s2.LatLng.from_point(p)._LatLng__coords
+    return math.degrees(coords[0]), math.degrees(coords[1])
 
 
 def parse_unicode(bytestring):
@@ -46,9 +53,11 @@ def insert_mock_data(config, num_pokemons):
     from .models import Pokemon
     from .search import generate_location_steps
 
-    latitude, longitude = config['ORIGINAL_LATITUDE'], config['ORIGINAL_LONGITUDE']
-
-    locations = [l for l in generate_location_steps((latitude, longitude), num_pokemons)]
+    locations = [l for l
+                 in generate_location_steps(
+                    SearchConfig.ORIGINAL_LATITUDE,
+                    SearchConfig.ORIGINAL_LONGITUDE,
+                    num_pokemons)]
     disappear_time = datetime.now() + timedelta(hours=1)
 
     for i in xrange(num_pokemons):

@@ -14,6 +14,12 @@ db = SqliteDatabase('pogom.db')
 log = logging.getLogger(__name__)
 
 
+class SearchConfig(object):
+    ORIGINAL_LATITUDE = None
+    ORIGINAL_LONGITUDE = None
+    COVER = None
+
+
 class BaseModel(Model):
     class Meta:
         database = db
