@@ -38,10 +38,39 @@ function pokemonLabel(name, disappear_time, id, disappear_time, latitude, longit
     return label;
 };
 
+function gymLabel(team_name, team_id, gym_points) {
+    var gym_color = [ "0, 0, 0, .4", "74, 138, 202, .6", "240, 68, 58, .6", "254, 217, 40, .6" ];
+    var str;
+    if (team_name == 0) {
+        str = '\
+            <div><center>\
+            <div>\
+                <b style="color:rgba(' + gym_color[team_id] + ')">' + team_name + '</b><br>\
+            </div>\
+            </center></div>';
+    } else {
+        str = '\
+            <div><center>\
+            <div>\
+                Gym owned by:\
+            </div>\
+            <div>\
+                <b style="color:rgba(' + gym_color[team_id] + ')">Team ' + team_name + '</b><br>\
+                <img height="100px" src="/static/forts/' + team_name + '_large.png"> \
+            </div>\
+            <div>\
+                Prestige: ' + gym_points + '\
+            </div>\
+            </center></div>';
+    }
+
+    return str;
+}
 
 
-map_objects = {} // dict containing all markers (pokemon, stops, gyms) on the map.
-
+map_pokemons = {} // dict containing all pokemons on the map.
+map_gyms = {}
+var gym_types = [ "Uncontested", "Mystic", "Valor", "Instinct" ];
 
 function setupPokemonMarker(item) {
     var marker = new google.maps.Marker({
@@ -54,6 +83,26 @@ function setupPokemonMarker(item) {
         content: pokemonLabel(item.pokemon_name, item.disappear_time, item.pokemon_id, item.disappear_time, item.latitude, item.longitude)
     });
     
+    addListeners(marker);
+    return marker;
+};
+
+function setupGymMarker(item) {
+    var marker = new google.maps.Marker({
+        position: {lat: item.latitude, lng: item.longitude},
+        map: map,
+        icon: 'static/forts/'+gym_types[item.team_id]+'.png'
+    });
+    
+    marker.infoWindow = new google.maps.InfoWindow({
+        content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points)
+    });
+    
+    addListeners(marker);
+    return marker;
+};
+
+function addListeners(marker){
     marker.addListener('click', function() {
         marker.infoWindow.open(map, marker);
         updateLabelDiffTime();
@@ -74,17 +123,16 @@ function setupPokemonMarker(item) {
             marker.infoWindow.close();
         }
     });
-
-    return marker;
+    return marker
 };
 
 function clearStaleMarkers(){
-    $.each(map_objects, function(key, value) {
+    $.each(map_pokemons, function(key, value) {
         
-        if (map_objects[key]['disappear_time'] < new Date().getTime()) {
-            map_objects[key].marker.setMap(null);
+        if (map_pokemons[key]['disappear_time'] < new Date().getTime()) {
+            map_pokemons[key].marker.setMap(null);
             console.log("removing marker with key "+key);
-            delete map_objects[key];
+            delete map_pokemons[key];
         }
     });
 };
@@ -99,14 +147,33 @@ function updateMap() {
                'gyms': document.getElementById('gyms-checkbox').checked},
         dataType: "json"
     }).done(function(result){
-        $.each(result, function(i, item){
-            
-            if (item.encounter_id in map_objects) {
+        
+        $.each(result.pokemons, function(i, item){
+            if (item.encounter_id in map_pokemons) {
                 // do nothing 
             }
             else { // add marker to map and item to dict
                 item.marker = setupPokemonMarker(item);
-                map_objects[item.encounter_id] = item;
+                map_pokemons[item.encounter_id] = item;
+            }
+            
+        });
+        
+        $.each(result.gyms, function(i, item){
+            if (item.gym_id in map_gyms) {
+                // if team has changed, create new marker (new icon)
+                if (map_gyms[item.gym_id].team_id == item.team_id) {
+                    map_gyms[item.gym_id].marker = setupGymMarker(item);
+                } else { // if it hasn't changed generate new label only (in case prestige has changed)
+                    map_gyms[item.gym_id].marker.infoWindow = new google.maps.InfoWindow({
+                        content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points)
+                    });
+                    
+                }
+            }
+            else { // add marker to map and item to dict
+                item.marker = setupGymMarker(item);
+                map_gyms[item.gym_id] = item;
             }
             
         });
