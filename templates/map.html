@@ -6,60 +6,71 @@
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title>Flask Google Maps Full Map Example</title>
             <style>
-body {
-    display: flex;
-    min-height: 100vh;
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+ 
+.wrap {
+  height: 100vh;
+  display: flex;
+}
+
+main {
+  flex: 1;
+  display: flex;
+}
+
+aside {
+  flex: 1;
+}
+ 
+article {
+  flex: 4;
+}
+
+@media (max-width: 800px) {
+  main {
     flex-direction: column;
-    margin: 0;
+  }
 }
-
-.body {
-    display: flex;
-    flex: 1;
-}
-.content {
-    flex: 1;
-}
-
-.nav {
-    /* 12em is the width of the columns */
-    flex: 0 0 18em;
-}
-
-.nav {
-    /* put the nav on the left */
-    order: -1;
-}
-
 #map {
     height: 100%;
 }
 
             </style>
     </head>
-    
     <body>
-        <!--<header>…</header>-->
-        <div class="body">
-            <main class="content">
-                <div id="map"></div>
+        <div class="wrap">
+            <main>
+
+                <aside>
+                    <h1>Settings</h1>
+                    <fieldset>
+                        <input type="checkbox" id="pokemon-checkbox" checked>
+                        <label for="pokemon-checkbox">Display Pokemon</label><br> 
+                        
+                        <input type="checkbox" id="pokestops-checkbox">
+                        <label for="pokestops-checkbox">Display all Pokestops</label><br> 
+                        
+                        <input type="checkbox" id="pokestops-lured-checkbox" checked>
+                        <label for="pokestops-lured-checkbox">Display lured Pokestops</label><br> 
+                        
+                        <input type="checkbox" id="gyms-checkbox" checked>
+                        <label for="gyms-checkbox">Display Gyms</label><br> 
+                        
+                        <input type="checkbox" id="coverage-checkbox" checked>
+                        <label for="coverage-checkbox">Show Map Coverage</label><br> 
+                    </fieldset>
+                </aside>
+
+                <article>
+                    <div id="map"></div>
+                </article>
+
             </main>
-            <nav class="nav">
-                <fieldset>
-                <input type="checkbox" id="pokemon-checkbox" checked>
-                <label for="pokemon-checkbox">Display Pokemon</label><br> 
-                <input type="checkbox" id="pokestops-checkbox">
-                <label for="pokestops-checkbox">Display all Pokestops</label><br> 
-                <input type="checkbox" id="pokestops-lured-checkbox" checked>
-                <label for="pokestops-lured-checkbox">Display lured Pokestops</label><br> 
-                <input type="checkbox" id="gyms-checkbox" checked>
-                <label for="gyms-checkbox">Display Gyms</label><br> 
-                <button type="button" id="update-btn">Update</button>
-                </fieldset>
-
-            </nav>
         </div>
-
     </body>
     
     <script type="text/javascript">
