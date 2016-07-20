@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from pogom.models import Pokemon, Gym, Pokestop
 
 
@@ -14,7 +14,7 @@ class Pogom(Flask):
         self.route("/pokestops", methods=['GET'])(self.pokestops)
 
     def fullmap(self):
-        pass
+        return render_template('map.html')
 
     def pokemons(self):
         return jsonify([p for p in Pokemon.get_active()])
