@@ -16,7 +16,7 @@ function initMap() {
 };
 
 
-function pokemonLabel(name, id, disappear_time, latitude, longitude) {
+function pokemonLabel(name, disappear_time, id, disappear_time, latitude, longitude) {
     disappear_date = new Date(disappear_time)
     let pad = number => number <= 99 ? ("0"+number).slice(-2) : number;
     
@@ -52,7 +52,7 @@ function setupPokemonMarker(item) {
     
     item.disappear_time -= 7200000 // TODO!
     marker.infoWindow = new google.maps.InfoWindow({
-        content: pokemonLabel(item.pokemon_name, item.pokemon_id, item.disappear_time, item.latitude, item.longitude)
+        content: pokemonLabel(item.pokemon_name, item.disappear_time, item.pokemon_id, item.disappear_time, item.latitude, item.longitude)
     });
     
     marker.addListener('click', function() {
@@ -124,10 +124,10 @@ function displayCoverage() {
         var coverage = new google.maps.Polygon({
             paths: data,
             strokeColor: '#FF0000',
-            strokeOpacity: 0.8,
+            strokeOpacity: 0.6,
             strokeWeight: 1,
             fillColor: '#FF0000',
-            fillOpacity: 0.15,
+            fillOpacity: 0.08,
             clickable: false
         });
         coverage.setMap(map);
