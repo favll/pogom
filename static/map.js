@@ -50,7 +50,6 @@ function setupPokemonMarker(item) {
         icon: 'static/icons/'+item.pokemon_id+'.png'
     });
     
-    item.disappear_time -= 7200000 // TODO!
     marker.infoWindow = new google.maps.InfoWindow({
         content: pokemonLabel(item.pokemon_name, item.disappear_time, item.pokemon_id, item.disappear_time, item.latitude, item.longitude)
     });
