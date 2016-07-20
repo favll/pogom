@@ -2,10 +2,17 @@
 
 var map;
 function initMap() {
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: center_lat, lng: center_lng},
-    zoom: 16
-  });
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat: center_lat, lng: center_lng},
+        zoom: 16
+    });
+    
+    marker = new google.maps.Marker({
+        position: {lat: center_lat, lng: center_lng},
+        map: map,
+        animation: google.maps.Animation.DROP
+    });
+
 };
 
 
@@ -84,7 +91,7 @@ function clearStaleMarkers(){
 };
 
 function updateMap() {
-    $.getJSON("/pokemons", function(result){
+    $.getJSON("/map-data", function(result){
         $.each(result, function(i, item){
             
             if (item.encounter_id in map_objects) {

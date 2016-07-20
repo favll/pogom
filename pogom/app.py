@@ -1,13 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import logging
 import calendar
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from flask.json import JSONEncoder
 from datetime import datetime
 
 from . import config
 from .models import Pokemon, Gym, Pokestop
+
+log = logging.getLogger(__name__)
 
 
 class Pogom(Flask):
@@ -15,9 +18,7 @@ class Pogom(Flask):
         super(Pogom, self).__init__(*args, **kwargs)
         self.json_encoder = CustomJSONEncoder
         self.route("/", methods=['GET'])(self.fullmap)
-        self.route("/pokemons", methods=['GET'])(self.pokemons)
-        self.route("/gyms", methods=['GET'])(self.gyms)
-        self.route("/pokestops", methods=['GET'])(self.pokestops)
+        self.route("/map-data", methods=['GET'])(self.map_data)
 
     def fullmap(self):
         return render_template('map.html',
@@ -25,14 +26,21 @@ class Pogom(Flask):
                                lng=config['ORIGINAL_LONGITUDE'],
                                gmaps_key=config['GOOGLEMAPS_KEY'])
 
-    def pokemons(self):
-        return jsonify(Pokemon.get_active())
-
-    def pokestops(self):
-        return jsonify([p for p in Pokestop.select().dicts()])
-
-    def gyms(self):
-        return jsonify([g for g in Gym.select().dicts()])
+    def map_data(self):
+        l = []
+        if request.args.get('pokemons', 'all') == 'all':
+            l.extend(Pokemon.get_active())
+        
+        if request.args.get('pokestops', 'none') == 'all':
+            l.extend([p for p in Pokestop.select().dicts()])
+        
+        if request.args.get('pokestops', 'none') == 'lured':
+            l.extend([p for p in Pokestop.select().dicts()]) #TODO
+    
+        if request.args.get('gyms', 'none') == 'all':
+            l.extend([g for g in Gym.select().dicts()])
+    
+        return jsonify(l)
 
 
 class CustomJSONEncoder(JSONEncoder):
