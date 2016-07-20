@@ -10,6 +10,8 @@ import logging
 db = SqliteDatabase('pogom.db')
 log = logging.getLogger(__name__)
 
+DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 
 class BaseModel(Model):
     class Meta:
@@ -24,7 +26,7 @@ class Pokemon(BaseModel):
     pokemon_id = IntegerField()
     latitude = FloatField()
     longitude = FloatField()
-    disappear_time = DateTimeField()
+    disappear_time = DateTimeField(formats=DATETIME_FORMAT)
 
     @classmethod
     def get_active(cls):
@@ -39,8 +41,8 @@ class Pokestop(BaseModel):
     enabled = BooleanField()
     latitude = FloatField()
     longitude = FloatField()
-    last_modified = DateTimeField()
-    lure_expiration = DateTimeField(null=True)
+    last_modified = DateTimeField(formats=DATETIME_FORMAT)
+    lure_expiration = DateTimeField(null=True, formats=DATETIME_FORMAT)
 
 
 class Gym(BaseModel):
@@ -55,7 +57,7 @@ class Gym(BaseModel):
     enabled = BooleanField()
     latitude = FloatField()
     longitude = FloatField()
-    last_modified = DateTimeField()
+    last_modified = DateTimeField(formats=DATETIME_FORMAT)
 
 
 def parse_map(map_dict):
@@ -106,7 +108,7 @@ def parse_map(map_dict):
                     'last_modified': datetime.fromtimestamp(
                         f['last_modified_timestamp_ms'] / 1000.0),
                 }
-    
+
     if pokemons:
         log.info("Upserting {} pokemon".format(len(pokemons)))
         InsertQuery(Pokemon, rows=pokemons.values()).upsert().execute()
