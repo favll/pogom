@@ -20,8 +20,8 @@ class Pokemon(BaseModel):
     encounter_id = CharField(primary_key=True)
     spawnpoint_id = CharField()
     pokemon_id = IntegerField()
-    longitude = FloatField()
     latitude = FloatField()
+    longitude = FloatField()
     disappear_time = DateTimeField()
 
     @classmethod

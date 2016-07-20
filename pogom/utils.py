@@ -4,6 +4,12 @@
 import sys
 import getpass
 import argparse
+import re
+import uuid
+from datetime import datetime, timedelta
+
+from .models import Pokemon
+from .search import generate_location_steps
 
 
 def parse_unicode(bytestring):
@@ -33,9 +39,27 @@ def get_args():
                         'locale folder for more options', default='en')
     parser.add_argument('-c', '--china', help='Coordinates transformer for China', action='store_true')
     parser.add_argument('-d', '--debug', help='Debug Mode', action='store_true')
+    parser.add_argument('-m', '--mock', help='Mock mode. Starts the web server but not the background thread.', action='store_true', default=False)
 
     args = parser.parse_args()
     if args.password is None:
         args.password = getpass.getpass()
 
     return args
+
+
+def insert_mock_data(location, num_pokemons):
+    prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
+    res = prog.match(location)
+    latitude, longitude = float(res.group(1)), float(res.group(2))
+
+    locations = [l for l in generate_location_steps((latitude, longitude), num_pokemons)]
+    disappear_time = datetime.now() + timedelta(hours=1)
+
+    for i in xrange(num_pokemons):
+        Pokemon.create(encounter_id=uuid.uuid4(),
+                       spawnpoint_id='sp{}'.format(i),
+                       pokemon_id=(i+1) % 150,
+                       latitude=locations[i][0],
+                       longitude=locations[i][1],
+                       disappear_time=disappear_time)

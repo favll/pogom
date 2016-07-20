@@ -7,7 +7,7 @@ from threading import Thread
 
 from pogom.app import Pogom
 from pogom.search import search
-from pogom.utils import get_args
+from pogom.utils import get_args, insert_mock_data
 from pogom.models import create_tables
 
 
@@ -32,7 +32,11 @@ if __name__ == '__main__':
 
     args = get_args()
     create_tables()
-    start_locator_thread(args)
+
+    if not args.mock:
+        start_locator_thread(args)
+    else:
+        insert_mock_data(args.location, 6)
 
     app = Pogom(__name__)
     app.run(threaded=True, debug=args.debug, host=args.host, port=args.port)
