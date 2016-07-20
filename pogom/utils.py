@@ -17,7 +17,7 @@ from . import config
 
 def coords_from_point(p):
     coords = s2.LatLng.from_point(p)._LatLng__coords
-    return math.degrees(coords[0]), math.degrees(coords[1])
+    return {'lat': math.degrees(coords[0]), 'lng': math.degrees(coords[1])}
 
 
 def parse_unicode(bytestring):
