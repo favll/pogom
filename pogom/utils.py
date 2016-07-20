@@ -49,13 +49,11 @@ def get_args():
     return args
 
 
-def insert_mock_data(location, num_pokemons):
+def insert_mock_data(config, num_pokemons):
     from .models import Pokemon
     from .search import generate_location_steps
 
-    prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
-    res = prog.match(location)
-    latitude, longitude = float(res.group(1)), float(res.group(2))
+    latitude, longitude = config['ORIGINAL_LATITUDE'], config['ORIGINAL_LONGITUDE']
 
     locations = [l for l in generate_location_steps((latitude, longitude), num_pokemons)]
     disappear_time = datetime.now() + timedelta(hours=1)

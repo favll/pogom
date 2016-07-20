@@ -44,7 +44,7 @@ if __name__ == '__main__':
     if not args.mock:
         start_locator_thread(args)
     else:
-        insert_mock_data(args.location, 6)
+        insert_mock_data(config, 6)
 
     app = Pogom(__name__)
     config['ROOT_PATH'] = app.root_path

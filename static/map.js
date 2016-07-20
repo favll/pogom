@@ -59,13 +59,11 @@ function setupPokemonMarker(item) {
     });
 
     marker.addListener('mouseover', function() {
-        console.log("mouseover");
         marker.infoWindow.open(map, marker);
         updateLabelDiffTime();
     });
     
     marker.addListener('mouseout', function() {
-        console.log("mouseover");
         if (!marker.persist) {
             marker.infoWindow.close();
         }
@@ -86,7 +84,6 @@ function clearStaleMarkers(){
 };
 
 function updateMap() {
-    console.log("update");
     $.getJSON("/pokemons", function(result){
         $.each(result, function(i, item){
             
