@@ -118,18 +118,19 @@ function updateMap() {
 window.setInterval(updateMap, 5000);
 updateMap();
 
+var coverage;
 function displayCoverage() {
     $.getJSON("/cover", {format: "json"}).done(function(data) {        
-        var bermudaTriangle = new google.maps.Polygon({
+        var coverage = new google.maps.Polygon({
             paths: data,
             strokeColor: '#FF0000',
             strokeOpacity: 0.8,
             strokeWeight: 1,
             fillColor: '#FF0000',
-            fillOpacity: 0.15
+            fillOpacity: 0.15,
+            clickable: false
         });
-        bermudaTriangle.setMap(map);
-
+        coverage.setMap(map);
     });
 }
 displayCoverage();
