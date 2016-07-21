@@ -126,4 +126,4 @@ def search(args):
 def search_loop(args):
     while True:
         search(args)
-        log.info("Finished scan. Sleeping 30s.")
+        log.info("Finished scan")

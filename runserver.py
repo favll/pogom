@@ -23,8 +23,9 @@ def start_locator_thread(args):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(module)11s] [%(levelname)7s] %(message)s')
+    args = get_args()
 
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(module)11s] [%(levelname)7s] %(message)s')
     if not args.debug:
         logging.getLogger("peewee").setLevel(logging.INFO)
         logging.getLogger("requests").setLevel(logging.WARNING)
@@ -42,7 +43,6 @@ if __name__ == '__main__':
         logging.getLogger("pogom.models").setLevel(logging.DEBUG)
         logging.getLogger("werkzeug").setLevel(logging.INFO)
 
-    args = get_args()
     create_tables()
 
     set_location(args.location, args.radius)
