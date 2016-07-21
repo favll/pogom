@@ -102,8 +102,6 @@ def search(args):
     num_steps = len(SearchConfig.COVER)
     position = (SearchConfig.ORIGINAL_LATITUDE, SearchConfig.ORIGINAL_LONGITUDE, 0)
 
-    log.info("search")
-
     i = 1
     for step_location in generate_location_steps():
         log.info('Scanning step {:d} of {:d}.'.format(i, num_steps))
