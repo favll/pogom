@@ -72,7 +72,7 @@ class Gym(BaseModel):
 
     gym_id = CharField(primary_key=True)
     team_id = IntegerField()
-    guard_pokemon_id = IntegerField()
+    guard_pokemon_id = IntegerField(null=True)
     gym_points = IntegerField()
     enabled = BooleanField()
     latitude = FloatField()
@@ -122,8 +122,8 @@ def parse_map(map_dict):
             else:  # Currently, there are only stops and gyms
                 gyms[f['id']] = {
                     'gym_id': f['id'],
-                    'team_id': f['owned_by_team'],
-                    'guard_pokemon_id': f['guard_pokemon_id'],
+                    'team_id': f.get('owned_by_team', 0),
+                    'guard_pokemon_id': f.get('guard_pokemon_id', None),
                     'gym_points': f['gym_points'],
                     'enabled': f['enabled'],
                     'latitude': f['latitude'],
