@@ -1,4 +1,5 @@
 var $selectExclude = $("#exclude-pokemon");
+var excludedPokemon = localStorage.excludedPokemon;
 
 $.getJSON("static/locales/pokemon.en.json").done(function(data) {
     var pokeList = []
@@ -12,16 +13,14 @@ $.getJSON("static/locales/pokemon.en.json").done(function(data) {
         placeholder: "Type to exclude Pokemon",
         data: pokeList,
     });
-    $selectExclude.val(JSON.parse(readCookie("remember_select"))).trigger("change");
+    $selectExclude.val(excludedPokemon).trigger("change");
 });
 
-var excludedPokemon = [];
 
 $selectExclude.on("change", function (e) { 
     excludedPokemon = $selectExclude.val().map(Number);
+    localStorage.excludedPokemon = excludedPokemon;
     clearStaleMarkers();
-    document.cookie = 'remember_select='+JSON.stringify(excludedPokemon)+
-            '; max-age=31536000; path=/';
 });
 
 
@@ -287,15 +286,3 @@ var updateLabelDiffTime = function() {
 };
 
 window.setInterval(updateLabelDiffTime, 1000);
-
-
-function readCookie(name) {
-    var nameEQ = name + "=";
-    var ca = document.cookie.split(';');
-    for(var i=0;i < ca.length;i++) {
-        var c = ca[i];
-        while (c.charAt(0)==' ') c = c.substring(1,c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-    }
-    return null;
-}
