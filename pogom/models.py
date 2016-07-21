@@ -124,7 +124,7 @@ def parse_map(map_dict):
                     'gym_id': f['id'],
                     'team_id': f.get('owned_by_team', 0),
                     'guard_pokemon_id': f.get('guard_pokemon_id', None),
-                    'gym_points': f['gym_points'],
+                    'gym_points': f.get('gym_points', 0),
                     'enabled': f['enabled'],
                     'latitude': f['latitude'],
                     'longitude': f['longitude'],

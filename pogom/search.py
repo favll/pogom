@@ -64,7 +64,7 @@ def send_map_request(api, position, args):
                             since_timestamp_ms=TIMESTAMP,
                             cell_id=get_cellid(position[0], position[1]))
         return api.call()
-    except Exception as e:  # make sure we dont crash in the main loop
+    except Exception:  # make sure we dont crash in the main loop
         log.exception("Uncaught exception when downloading map")
         return False
 
@@ -118,6 +118,8 @@ def search(args):
             parse_map(response_dict)
         except KeyError:
             log.exception('Failed to parse response')
+        except:  # make sure we dont crash in the main loop
+            log.exception('Unexpected error')
 
         log.info('Completed {:5.2f}% of scan.'.format(float(i) / num_steps*100))
         i += 1
