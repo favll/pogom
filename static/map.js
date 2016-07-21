@@ -98,10 +98,12 @@ map_gyms = {}
 var gym_types = [ "Uncontested", "Mystic", "Valor", "Instinct" ];
 
 function setupPokemonMarker(item) {
+    var myIcon = new google.maps.MarkerImage('static/icons/'+item.pokemon_id+'.png', null, null, null, new google.maps.Size(30,30));
+
     var marker = new google.maps.Marker({
         position: {lat: item.latitude, lng: item.longitude},
         map: map,
-        icon: 'static/icons/'+item.pokemon_id+'.png'
+        icon: myIcon
     });
     
     marker.infoWindow = new google.maps.InfoWindow({
