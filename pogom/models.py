@@ -6,7 +6,6 @@ from peewee import Model, SqliteDatabase, InsertQuery, IntegerField,\
                    CharField, FloatField, BooleanField, DateTimeField
 from datetime import datetime
 from base64 import b64encode
-
 from .utils import get_pokemon_name
 
 
@@ -53,6 +52,21 @@ class Pokemon(BaseModel):
 
         return pokemons
 
+class Pokedist(BaseModel):
+    encounter_id = CharField()
+    poke_latitude = FloatField()
+    poke_longitude = FloatField()
+    search_latitude = FloatField()
+    search_longitude = FloatField()
+    
+    dist = FloatField(null=True)
+    angle = FloatField(null=True)
+    
+    class Meta:
+        indexes = (
+            # create a unique on from/to/date
+            (('encounter_id', 'search_latitude', 'search_longitude'), True), )
+
 
 class Pokestop(BaseModel):
     pokestop_id = CharField(primary_key=True)
@@ -80,8 +94,9 @@ class Gym(BaseModel):
     last_modified = DateTimeField()
 
 
-def parse_map(map_dict):
+def parse_map(map_dict, coords):
     pokemons = {}
+    pokedists = {}
     pokestops = {}
     gyms = {}
 
@@ -97,6 +112,13 @@ def parse_map(map_dict):
                 'disappear_time': datetime.utcfromtimestamp(
                     (p['last_modified_timestamp_ms'] +
                      p['time_till_hidden_ms']) / 1000.0)
+            }
+            pokedists[p['encounter_id']] = {
+                'encounter_id': b64encode(str(p['encounter_id'])),
+                'poke_latitude': p['latitude'],
+                'poke_longitude': p['longitude'],
+                'search_latitude': coords[0],
+                'search_longitude': coords[1]
             }
 
         for f in cell.get('forts', []):
@@ -132,17 +154,19 @@ def parse_map(map_dict):
                         f['last_modified_timestamp_ms'] / 1000.0),
                 }
 
+    bulk_upsert(Pokedist, pokedists)
+
     if pokemons:
         log.info("Upserting {} pokemon".format(len(pokemons)))
         bulk_upsert(Pokemon, pokemons)
 
-    if pokestops:
-        log.info("Upserting {} pokestops".format(len(pokestops)))
-        bulk_upsert(Pokestop, pokestops)
+    #if pokestops:
+    #    log.info("Upserting {} pokestops".format(len(pokestops)))
+    #    bulk_upsert(Pokestop, pokestops)
 
-    if gyms:
-        log.info("Upserting {} gyms".format(len(gyms)))
-        bulk_upsert(Gym, gyms)
+    #if gyms:
+    #    log.info("Upserting {} gyms".format(len(gyms)))
+    #    bulk_upsert(Gym, gyms)
         
 def bulk_upsert(cls, data):
     num_rows = len(data.values())
@@ -158,5 +182,5 @@ def bulk_upsert(cls, data):
 
 def create_tables():
     db.connect()
-    db.create_tables([Pokemon, Pokestop, Gym], safe=True)
+    db.create_tables([Pokemon, Pokestop, Gym, Pokedist], safe=True)
     db.close()
