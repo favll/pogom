@@ -54,8 +54,10 @@ def set_location(location, radius):
     SearchConfig.RADIUS = radius
 
 
-def send_map_request(api, position):
+def send_map_request(api, position, args):
     try:
+        login_if_necessary(args, position)
+    
         api.set_position(*position)
         api.get_map_objects(latitude=f2i(position[0]),
                             longitude=f2i(position[1]),
@@ -63,7 +65,7 @@ def send_map_request(api, position):
                             cell_id=get_cellid(position[0], position[1]))
         return api.call()
     except Exception as e:  # make sure we dont crash in the main loop
-        log.warn("Uncaught exception when downloading map " + e)
+        log.exception("Uncaught exception when downloading map")
         return False
 
 
@@ -74,46 +76,48 @@ def generate_location_steps():
 
 
 def login(args, position):
-    log.info('Attempting login.')
+    log.info('Attempting login')
 
     api.set_position(*position)
 
     while not api.login(args.auth_service, args.username, args.password):
-        log.info('Login failed. Trying again.')
+        log.info('Login failed, retrying')
         time.sleep(REQ_SLEEP)
 
-    log.info('Login successful.')
+    log.info('Login successful')
+
+def login_if_necessary(args, position):
+    if api._auth_provider and api._auth_provider._ticket_expire:
+        remaining_time = api._auth_provider._ticket_expire/1000 - time.time()
+
+        if remaining_time < 60:
+            log.info("Login has or is about to expire")
+            login(args, position)
+    else:
+        login(args, position)
 
 
 def search(args):
     num_steps = len(SearchConfig.COVER)
     position = (SearchConfig.ORIGINAL_LATITUDE, SearchConfig.ORIGINAL_LONGITUDE, 0)
 
-    if api._auth_provider and api._auth_provider._ticket_expire:
-        remaining_time = api._auth_provider._ticket_expire/1000 - time.time()
-
-        if remaining_time > 60:
-            log.info("Already logged in for another {:.2f} seconds. Skipping login".format(remaining_time))
-        else:
-            login(args, position)
-    else:
-        login(args, position)
+    log.info("search")
 
     i = 1
     for step_location in generate_location_steps():
         log.info('Scanning step {:d} of {:d}.'.format(i, num_steps))
         log.debug('Scan location is {:f}, {:f}'.format(step_location[0], step_location[1]))
 
-        response_dict = send_map_request(api, step_location)
+        response_dict = send_map_request(api, step_location, args)
         while not response_dict:
             log.info('Map Download failed. Trying again.')
-            response_dict = send_map_request(api, step_location)
+            response_dict = send_map_request(api, step_location, args)
             time.sleep(REQ_SLEEP)
 
         try:
             parse_map(response_dict)
         except KeyError:
-            log.error('Scan step failed. Response dictionary key error.')
+            log.exception('Failed to parse response')
 
         log.info('Completed {:5.2f}% of scan.'.format(float(i) / num_steps*100))
         i += 1
