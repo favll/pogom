@@ -15,7 +15,6 @@ from pgoapi import PGoApi
 from pgoapi.utilities import f2i, h2f, get_cellid, encode, get_pos_by_name
 
 
-from .utils import coords_of_cell
 from . import config
 from .models import parse_map, SearchConfig
 

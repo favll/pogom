@@ -9,7 +9,6 @@ from datetime import datetime
 
 from . import config
 from .models import Pokemon, Gym, Pokestop, SearchConfig
-from .utils import coords_from_point
 
 log = logging.getLogger(__name__)
 

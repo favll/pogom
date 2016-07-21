@@ -9,7 +9,7 @@ $.getJSON("static/locales/pokemon.en.json").done(function(data) {
     
     console.log(JSON.parse(readCookie("remember_select")));
     $selectExclude.select2({
-        placeholder: "Select Pokemon to exclude",
+        placeholder: "Type to exclude Pokemon",
         data: pokeList,
     });
     $selectExclude.val(JSON.parse(readCookie("remember_select"))).trigger("change");

@@ -89,6 +89,9 @@ def parse_map(map_dict):
     cells = map_dict['responses']['GET_MAP_OBJECTS']['map_cells']
     for cell in cells:
         for p in cell.get('wild_pokemons', []):
+            if p['encounter_id'] in pokemons:
+                continue  # prevent unnecessary parsing
+            
             pokemons[p['encounter_id']] = {
                 'encounter_id': b64encode(str(p['encounter_id'])),
                 'spawnpoint_id': p['spawnpoint_id'],
@@ -101,6 +104,9 @@ def parse_map(map_dict):
             }
 
         for f in cell.get('forts', []):
+            if f['id'] in gyms or f['id'] in pokestops:
+                continue  # prevent unnecessary parsing
+                
             if f.get('type') == 1:  # Pokestops
                 if 'lure_info' in f:
                     lure_expiration = datetime.utcfromtimestamp(
@@ -144,6 +150,7 @@ def parse_map(map_dict):
     if gyms:
         log.info("Upserting {} gyms".format(len(gyms)))
         bulk_upsert(Gym, gyms)
+
         
 def bulk_upsert(cls, data):
     num_rows = len(data.values())
