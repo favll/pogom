@@ -5,7 +5,8 @@ function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: {lat: center_lat, lng: center_lng},
         zoom: 15,
-        mapTypeControl: false
+        mapTypeControl: false,
+        streetViewControl: false
     });
     
     marker = new google.maps.Marker({
