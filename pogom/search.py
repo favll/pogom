@@ -124,11 +124,9 @@ def search(args):
 
         log.info('Completed {:5.2f}% of scan.'.format(float(i) / num_steps*100))
         i += 1
-        time.sleep(REQ_SLEEP)
 
 
 def search_loop(args):
     while True:
         search(args)
         log.info("Finished scan. Sleeping 30s.")
-        time.sleep(30)
