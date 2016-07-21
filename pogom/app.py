@@ -45,6 +45,7 @@ class Pogom(Flask):
 
     def cover(self):
         return jsonify(SearchConfig.COVER)
+        
 
 
 class CustomJSONEncoder(JSONEncoder):

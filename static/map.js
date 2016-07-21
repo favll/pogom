@@ -1,3 +1,23 @@
+var $selectExclude = $("#exclude-pokemon");
+
+$.getJSON("static/locales/pokemon.en.json").done(function(data) {
+    var pokeList = []
+    
+    $.each(data, function(key, value) {
+        pokeList.push( { id: key, text: value } );
+    });
+    $selectExclude.select2({
+        placeholder: "Select Pokemon to exclude",
+        data: pokeList
+    });
+});
+
+var excludedPokemon = [];
+
+$selectExclude.on("change", function (e) { 
+    excludedPokemon = $selectExclude.val().map(Number);
+    clearStaleMarkers();
+});
 
 
 var map;
@@ -126,7 +146,8 @@ function addListeners(marker){
 function clearStaleMarkers(){
     $.each(map_pokemons, function(key, value) {
         
-        if (map_pokemons[key]['disappear_time'] < new Date().getTime()) {
+        if (map_pokemons[key]['disappear_time'] < new Date().getTime() ||
+                excludedPokemon.indexOf(map_pokemons[key]['pokemon_id']) >= 0) {
             map_pokemons[key].marker.setMap(null);
             console.log("removing marker with key "+key);
             delete map_pokemons[key];
@@ -150,13 +171,13 @@ function updateMap() {
                 return false; // in case the checkbox was unchecked in the meantime.
             }
 
-            if (!(item.encounter_id in map_pokemons)) {
+            if (!(item.encounter_id in map_pokemons) && 
+                    excludedPokemon.indexOf(item.pokemon_id) < 0) {
                 // add marker to map and item to dict
                 if (item.marker) item.marker.setMap(null);
                 item.marker = setupPokemonMarker(item);
                 map_pokemons[item.encounter_id] = item;
             }
-            
         });
         
         $.each(result.gyms, function(i, item){
@@ -191,7 +212,6 @@ window.setInterval(updateMap, 5000);
 updateMap();
 
 document.getElementById('gyms-checkbox').onclick = function() {
-    console.log("onclick;");
     if(this.checked) {
         updateMap();
     } else {
@@ -218,7 +238,6 @@ var coverage;
 function displayCoverage() {
     $.getJSON("/cover", {format: "json"}).done(function(data) {    
         $.each(data, function(i, point) {
-            console.log(point);
             var circle = new google.maps.Circle({
                 strokeColor: '#FF0000',
                 strokeOpacity: 0.6,
