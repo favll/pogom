@@ -83,7 +83,7 @@ function gymLabel(team_name, team_id, gym_points) {
             <div style='padding-bottom: 2px'>Gym owned by:</div>
             <div>
                 <b style='color:rgba(${gym_color[team_id]})'>Team ${team_name}</b><br>
-                <img height='70px' style='padding: 5px;' src='/static/forts/${team_name}_large.png'> 
+                <img height='70px' style='padding: 5px;' src='static/forts/${team_name}_large.png'> 
             </div>
             <div>Prestige: ${gym_points}</div>
             </center></div>`;
@@ -165,7 +165,7 @@ function clearStaleMarkers(){
 
 function updateMap() {
     $.ajax({
-        url: "/map-data",
+        url: "map-data",
         type: 'GET',
         data: {'pokemon': localStorage.displayPokemons,
                'pokestops': document.getElementById('pokestops-checkbox').checked,
@@ -246,7 +246,7 @@ $('#pokemon-checkbox').change(function() {
     
 var coverage;
 function displayCoverage() {
-    $.getJSON("/cover", {format: "json"}).done(function(data) {    
+    $.getJSON("cover", {format: "json"}).done(function(data) {    
         $.each(data, function(i, point) {
             var circle = new google.maps.Circle({
                 strokeColor: '#FF0000',
