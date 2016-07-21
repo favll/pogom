@@ -1,6 +1,11 @@
 var $selectExclude = $("#exclude-pokemon");
 var excludedPokemon = localStorage.excludedPokemon;
 
+var d = "displayPokemons" in localStorage ? localStorage.displayPokemons : 'true';
+document.getElementById('pokemon-checkbox').checked = (d === 'true');
+d = "displayGyms" in localStorage ? localStorage.displayGyms : 'true';
+document.getElementById('gyms-checkbox').checked = (d === 'true');
+
 $.getJSON("static/locales/pokemon.en.json").done(function(data) {
     var pokeList = []
     
@@ -8,7 +13,6 @@ $.getJSON("static/locales/pokemon.en.json").done(function(data) {
         pokeList.push( { id: key, text: value } );
     });
     
-    console.log(JSON.parse(readCookie("remember_select")));
     $selectExclude.select2({
         placeholder: "Type to exclude Pokemon",
         data: pokeList,
@@ -163,10 +167,10 @@ function updateMap() {
     $.ajax({
         url: "/map-data",
         type: 'GET',
-        data: {'pokemon': document.getElementById('pokemon-checkbox').checked,
+        data: {'pokemon': localStorage.displayPokemons,
                'pokestops': document.getElementById('pokestops-checkbox').checked,
                'pokestops-lured': document.getElementById('pokestops-lured-checkbox').checked,
-               'gyms': document.getElementById('gyms-checkbox').checked},
+               'gyms': localStorage.displayGyms},
         dataType: "json"
     }).done(function(result){
         
@@ -215,7 +219,8 @@ function updateMap() {
 window.setInterval(updateMap, 5000);
 updateMap();
 
-document.getElementById('gyms-checkbox').onclick = function() {
+$('#gyms-checkbox').change(function() {
+    localStorage.displayGyms = this.checked;
     if(this.checked) {
         updateMap();
     } else {
@@ -224,9 +229,10 @@ document.getElementById('gyms-checkbox').onclick = function() {
         });
         map_gyms = {}
     }
-};
+});
 
 $('#pokemon-checkbox').change(function() {
+    localStorage.displayPokemons = this.checked;
     if(this.checked) {
         updateMap();
     } else {
