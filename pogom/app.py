@@ -44,9 +44,7 @@ class Pogom(Flask):
         return jsonify(d)
 
     def cover(self):
-        l = [[coords_from_point(cell.get_vertex(i)) for i in xrange(4)]
-             for cell in SearchConfig.COVER]
-        return jsonify(l)
+        return jsonify(SearchConfig.COVER)
 
 
 class CustomJSONEncoder(JSONEncoder):

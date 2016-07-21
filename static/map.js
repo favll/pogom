@@ -216,17 +216,21 @@ $('#pokemon-checkbox').change(function() {
     
 var coverage;
 function displayCoverage() {
-    $.getJSON("/cover", {format: "json"}).done(function(data) {        
-        var coverage = new google.maps.Polygon({
-            paths: data,
-            strokeColor: '#FF0000',
-            strokeOpacity: 0.6,
-            strokeWeight: 1,
-            fillColor: '#FF0000',
-            fillOpacity: 0.08,
-            clickable: false
+    $.getJSON("/cover", {format: "json"}).done(function(data) {    
+        $.each(data, function(i, point) {
+            console.log(point);
+            var circle = new google.maps.Circle({
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.6,
+                strokeWeight: 1,
+                fillColor: '#FF0000',
+                fillOpacity: 0.08,
+                clickable: false,
+                map: map,
+                center: point,
+                radius: 100
+            });
         });
-        coverage.setMap(map);
     });
 }
 displayCoverage();

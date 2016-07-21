@@ -18,6 +18,7 @@ class SearchConfig(object):
     ORIGINAL_LATITUDE = None
     ORIGINAL_LONGITUDE = None
     COVER = None
+    RADIUS = None
 
 
 class BaseModel(Model):

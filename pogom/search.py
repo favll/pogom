@@ -10,8 +10,10 @@ import requests
 import time
 import s2sphere as s2
 import math
+from geographiclib.geodesic import Geodesic
 from pgoapi import PGoApi
 from pgoapi.utilities import f2i, h2f, get_cellid, encode, get_pos_by_name
+
 
 from .utils import coords_of_cell
 from . import config
@@ -25,22 +27,22 @@ api = PGoApi()
 
 
 def set_cover():
-    coords = s2.LatLng(
-        math.radians(SearchConfig.ORIGINAL_LATITUDE),
-        math.radians(SearchConfig.ORIGINAL_LONGITUDE))
-
-    # alternate form of 1-cos(asin(x))
-    height = 1 - math.sqrt(1 - (float(SearchConfig.RADIUS)/6730000)**2 )
-
-    cap = s2.Cap.from_axis_height(coords.to_point(), height)
-    log.info(str(coords))
-
-    coverer = s2.RegionCoverer()
-    coverer.min_level = 16
-    coverer.max_level = 16
-    coverer.max_cells = 200
-
-    cover = [s2.Cell(cell_id) for cell_id in coverer.get_covering(cap)]
+    lat = SearchConfig.ORIGINAL_LATITUDE
+    lng = SearchConfig.ORIGINAL_LONGITUDE
+    num_steps = int(math.ceil((float(SearchConfig.RADIUS)-100)/200) + 1)
+    s = math.sqrt(3)*100
+    
+    num_step = 2
+    points = []
+    for i in range(1, num_steps):
+        for j in range (0, 6*i):
+            angle = (360.0/(6*i)) * j
+            d = s * i * math.sin(math.radians(60)) / math.sin(math.radians(120.0-(angle % 60)))
+            points.append(Geodesic.WGS84.Direct(lat, lng, angle, d) )
+        
+    cover = [ {"lat": p['lat2'], "lng": p['lon2']} for p in points ]
+    cover.append(  {"lat": lat, "lng": lng} )
+    
     SearchConfig.COVER = cover
 
 
@@ -70,9 +72,8 @@ def send_map_request(api, position, args):
 
 
 def generate_location_steps():
-    for cover in SearchConfig.COVER:
-        coords = coords_of_cell(cover)
-        yield (coords["lat"], coords["lng"], 0)
+    for point in SearchConfig.COVER:
+        yield (point["lat"], point["lng"], 0)
 
 
 def login(args, position):
