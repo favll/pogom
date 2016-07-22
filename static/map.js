@@ -228,7 +228,7 @@ function updateMap() {
     });
 };
 
-window.setInterval(updateMap, 5000);
+window.setInterval(updateMap, 10000);
 updateMap();
 
 $('#gyms-checkbox').change(function() {
