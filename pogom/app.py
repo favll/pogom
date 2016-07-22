@@ -21,6 +21,7 @@ class Pogom(Flask):
         self.route('/', methods=['GET'])(self.fullmap)
         self.route('/map-data', methods=['GET'])(self.map_data)
         self.route('/cover', methods=['GET'])(self.cover)
+        self.route('/set-location', methods=['POST'])(self.set_location)
 
     def fullmap(self):
         return render_template('map.html',
@@ -49,6 +50,16 @@ class Pogom(Flask):
     def cover(self):
         return jsonify(SearchConfig.COVER)
         
+    def set_location(self):
+        lat = request.args.get('lat', type=float)
+        lng = request.args.get('lng', type=float)
+        
+        if not (lat and lng):
+            abort(400)
+        
+        SearchConfig.ORIGINAL_LATITUDE = request.args['lat']
+        SearchConfig.ORIGINAL_LONGITUDE = request.args['lng']
+        SearchConfig.CHANGE = True
 
 
 class CustomJSONEncoder(JSONEncoder):

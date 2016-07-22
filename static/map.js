@@ -36,8 +36,21 @@ $selectExclude.on("change", function (e) {
     clearStaleMarkers();
 });
 
+$('#map').on('click', '#new-loc-btn', function () {
+    console.log("click");
+    
+    $.post("set-location", 
+           {'lat': newLocationMarker.getPosition().lat(), 
+            'lng':  newLocationMarker.getPosition().lng()}, 
+        function( data ) {
+            console.log( "return" ); // John
+        }, "json");
+});
 
 var map;
+var newLocationMarker;
+var currentLocationMarker;
+
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: {lat: center_lat, lng: center_lng},
@@ -46,13 +59,27 @@ function initMap() {
         streetViewControl: false
     });
     
-    marker = new google.maps.Marker({
+    currentLocationMarker = new google.maps.Marker({
         position: {lat: center_lat, lng: center_lng},
         map: map,
         animation: google.maps.Animation.DROP
     });
     displayCoverage();
 
+    google.maps.event.addListener(map, 'click', function(event) {
+        if (newLocationMarker) newLocationMarker.setMap(null);
+        newLocationMarker = new google.maps.Marker({
+            position: event.latLng, 
+            map: map
+        });
+        newLocationMarker.infoWindow = new google.maps.InfoWindow({
+            content: "<button id=\"new-loc-btn\">Set new Location</button>"
+        });
+        newLocationMarker.infoWindow.open(map, newLocationMarker);
+        google.maps.event.addListener(newLocationMarker.infoWindow,'closeclick',function(){
+            newLocationMarker.setMap(null); //removes the marker
+        });
+    });
 };
 
 
@@ -279,10 +306,10 @@ function statusLabels(status) {
     if (status['login_time'] == 0) {
         $loginStatus.html('Login failed');
         $loginStatus.removeClass('label-success');
-        $loginStatus.addClass('label-warning');
+        $loginStatus.addClass('label-danger');
     } else {
         $loginStatus.html('Logged in');
-        $loginStatus.removeClass('label-warning');
+        $loginStatus.removeClass('label-danger');
         $loginStatus.addClass('label-success');
     }
     
@@ -315,11 +342,11 @@ function statusLabels(status) {
         $lastRequestLabel.removeClass('label-danger');
         $lastRequestLabel.removeClass('label-warning');
         $lastRequestLabel.addClass('label-success');
-    } if (difference > 2 && difference <= 10) {
+    } if (difference > 2 && difference <= 30) {
         $lastRequestLabel.removeClass('label-danger');
         $lastRequestLabel.removeClass('label-success');
         $lastRequestLabel.addClass('label-warning');
-    } if (difference > 10) {
+    } if (difference > 30) {
         $lastRequestLabel.removeClass('label-warning');
         $lastRequestLabel.removeClass('label-success');
         $lastRequestLabel.addClass('label-danger');
