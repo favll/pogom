@@ -3,13 +3,14 @@
 
 import logging
 import calendar
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, abort
 from flask.json import JSONEncoder
 from datetime import datetime
 import time
 
 from . import config
 from .models import Pokemon, Gym, Pokestop, SearchConfig
+from .search import set_cover
 
 log = logging.getLogger(__name__)
 
@@ -48,18 +49,28 @@ class Pogom(Flask):
         return jsonify(d)
 
     def cover(self):
-        return jsonify(SearchConfig.COVER)
+        return jsonify( { 'cover': SearchConfig.COVER, 
+                          'center': { 'lat': SearchConfig.ORIGINAL_LATITUDE, 
+                                      'lng': SearchConfig.ORIGINAL_LONGITUDE} } )
         
     def set_location(self):
-        lat = request.args.get('lat', type=float)
-        lng = request.args.get('lng', type=float)
+        log.info(request.args)
+        log.info(request.data)
+        log.info(request.values)
+        lat = request.values.get('lat', type=float)
+        lng = request.values.get('lng', type=float)
+        log.info("{} {}".format(lat, type(lat)))
+        log.info("{} {}".format(lng, type(lng)))
         
         if not (lat and lng):
             abort(400)
         
-        SearchConfig.ORIGINAL_LATITUDE = request.args['lat']
-        SearchConfig.ORIGINAL_LONGITUDE = request.args['lng']
+        SearchConfig.ORIGINAL_LATITUDE = lat
+        SearchConfig.ORIGINAL_LONGITUDE = lng
         SearchConfig.CHANGE = True
+        set_cover()
+        
+        return ('', 204)
 
 
 class CustomJSONEncoder(JSONEncoder):

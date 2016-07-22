@@ -5,6 +5,11 @@ var $loginStatus = $(".login-status");
 var $lastRequestLabel = $(".last-request");
 var $selectExclude = $("#exclude-pokemon");
 var excludedPokemon = [];
+
+var map;
+var newLocationMarker;
+var currentLocationMarker;
+
 try {
     excludedPokemon = JSON.parse(localStorage.excludedPokemon);
     console.log(excludedPokemon);
@@ -29,27 +34,24 @@ $.getJSON("static/locales/pokemon.en.json").done(function(data) {
     $selectExclude.val(excludedPokemon).trigger("change");
 });
 
-
+// exclude multi-select listener
 $selectExclude.on("change", function (e) { 
     excludedPokemon = $selectExclude.val().map(Number);
     localStorage.excludedPokemon = JSON.stringify(excludedPokemon);
     clearStaleMarkers();
 });
 
+// change-location button listener
 $('#map').on('click', '#new-loc-btn', function () {
-    console.log("click");
     
     $.post("set-location", 
            {'lat': newLocationMarker.getPosition().lat(), 
             'lng':  newLocationMarker.getPosition().lng()}, 
         function( data ) {
-            console.log( "return" ); // John
+            displayCoverage();
+            newLocationMarker.setMap(null);
         }, "json");
 });
-
-var map;
-var newLocationMarker;
-var currentLocationMarker;
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
@@ -59,15 +61,13 @@ function initMap() {
         streetViewControl: false
     });
     
-    currentLocationMarker = new google.maps.Marker({
-        position: {lat: center_lat, lng: center_lng},
-        map: map,
-        animation: google.maps.Animation.DROP
-    });
     displayCoverage();
 
+    // on click listener for 
     google.maps.event.addListener(map, 'click', function(event) {
-        if (newLocationMarker) newLocationMarker.setMap(null);
+        if (newLocationMarker) {
+            newLocationMarker.setMap(null);
+       }
         newLocationMarker = new google.maps.Marker({
             position: event.latLng, 
             map: map
@@ -283,11 +283,23 @@ $('#pokemon-checkbox').change(function() {
 });
 
     
-var coverage;
+var coverCircles = [];
 function displayCoverage() {
-    $.getJSON("cover", {format: "json"}).done(function(data) {    
-        $.each(data, function(i, point) {
-            var circle = new google.maps.Circle({
+    if (currentLocationMarker) currentLocationMarker.setMap(null);
+    
+    $.each(coverCircles, function(i, circle) {
+        circle.setMap(null);
+    });
+    
+    $.getJSON("cover", {format: "json"}).done(function(data) { 
+        currentLocationMarker = new google.maps.Marker({
+            position: {lat: data['center']['lat'], lng: data['center']['lng']},
+            map: map,
+            animation: google.maps.Animation.DROP
+        });
+    
+        $.each(data['cover'], function(i, point) {
+            coverCircles.push(new google.maps.Circle({
                 strokeColor: '#FF0000',
                 strokeOpacity: 0.6,
                 strokeWeight: 1,
@@ -297,7 +309,7 @@ function displayCoverage() {
                 map: map,
                 center: point,
                 radius: 100
-            });
+            }));
         });
     });
 }
@@ -305,11 +317,11 @@ function displayCoverage() {
 function statusLabels(status) {
     if (status['login_time'] == 0) {
         $loginStatus.html('Login failed');
-        $loginStatus.removeClass('label-success');
+        $loginStatus.removeClass('label-success label-warning');
         $loginStatus.addClass('label-danger');
     } else {
         $loginStatus.html('Logged in');
-        $loginStatus.removeClass('label-danger');
+        $loginStatus.removeClass('label-danger label-warning');
         $loginStatus.addClass('label-success');
     }
     

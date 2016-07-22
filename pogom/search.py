@@ -126,6 +126,11 @@ def search(args):
 
         SearchConfig.LAST_SUCCESSFUL_REQUEST = time.time()
         log.info('Completed {:5.2f}% of scan.'.format(float(i) / num_steps*100))
+        
+        if SearchConfig.CHANGE:
+            SearchConfig.CHANGE = False
+            break            
+        
         i += 1
 
 

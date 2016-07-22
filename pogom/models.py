@@ -21,6 +21,7 @@ class SearchConfig(object):
     RADIUS = None
     LOGGED_IN = 0.0
     LAST_SUCCESSFUL_REQUEST = 0.0
+    CHANGE = False  # Triggered when the setup is changed due to user input
 
 
 class BaseModel(Model):
