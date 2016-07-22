@@ -145,13 +145,14 @@ html, body {
 @media (max-width: 800px) {
   #menu {
     width: 100%;
-    
-    
   }
   #menuToggle {
     top: 18px;
     right: 18px;
     left: initial;
+  }
+  #menu-container {
+    padding-top: 0;
   }
 }
 span.select2 { width: 100% !important; }
@@ -178,6 +179,10 @@ span.select2 { width: 100% !important; }
     border-radius: .25rem;
 }
 
+.chckbox {
+    padding: 2px 0;
+}
+
 
             </style>
     </head>
@@ -197,21 +202,31 @@ span.select2 { width: 100% !important; }
                         <span class='last-request label label-warning'>No scans yet</span>
                     </p>
 
-                    <fieldset>
-                        <input type="checkbox" id="pokemon-checkbox">
-                        <label for="pokemon-checkbox">Display Pokemon</label><br> 
+                    <fieldset style="border: 0; padding-left: 0;">
+                        <div class="chckbox">
+                            <input type="checkbox" id="pokemon-checkbox">
+                            <label for="pokemon-checkbox">Display Pokemon</label><br> 
+                        </div>
                         
-                        <input type="checkbox" id="pokestops-checkbox">
-                        <label for="pokestops-checkbox">Display all Pokestops</label><br> 
+                        <div class="chckbox">
+                            <input type="checkbox" id="pokestops-checkbox">
+                            <label for="pokestops-checkbox">Display all Pokestops</label><br> 
+                        </div>
                         
-                        <input type="checkbox" id="pokestops-lured-checkbox">
-                        <label for="pokestops-lured-checkbox">Display lured Pokestops</label><br> 
+                        <div class="chckbox">
+                            <input type="checkbox" id="pokestops-lured-checkbox">
+                            <label for="pokestops-lured-checkbox">Display lured Pokestops</label><br> 
+                        </div>
                         
-                        <input type="checkbox" id="gyms-checkbox">
-                        <label for="gyms-checkbox">Display Gyms</label><br> 
+                        <div class="chckbox">
+                            <input type="checkbox" id="gyms-checkbox">
+                            <label for="gyms-checkbox">Display Gyms</label><br> 
+                        </div>
                         
-                        <input type="checkbox" id="coverage-checkbox">
-                        <label for="coverage-checkbox">Show Map Coverage</label><br> 
+                        <div class="chckbox">
+                            <input type="checkbox" id="coverage-checkbox">
+                            <label for="coverage-checkbox">Show Map Coverage</label><br> 
+                        </div>
                     </fieldset>
                     
                     <p>
