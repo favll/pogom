@@ -287,21 +287,17 @@ function statusLabels(status) {
         $loginStatus.addClass('label-success');
     }
     
-    var lastRequest = status['last-successful-request'];
-    var now = new Date();
-    
-    
-    var difference = Math.abs(lastRequest - now/1000);
-    var hours = Math.floor(difference / 36e5);
-    var minutes = Math.floor((difference - (hours * 36e5)) / 6e4);
-    var seconds = Math.floor((difference - (hours * 36e5) - (minutes * 6e4)) / 1e3);
-    
-    if (difference < 0) {return;}
-    
+    var difference = -status['last-successful-request'];
+    var hours = Math.floor(difference / 3600);
+    var minutes = Math.floor(difference % 3600 / 60);
+    var seconds = Math.floor(difference % 3600 % 60);
+    var milli = Math.floor((difference % 3600 % 60 - seconds)*100);
+    console.log(milli)
+        
     timestring = "";
     if(hours > 0) timestring += hours + "h";
     if(minutes > 0) timestring += pad(minutes) + "m";
-    timestring += pad(seconds) + "s";
+    timestring += pad(seconds) + "." + pad(milli) + "s";
     $lastRequestLabel.html("Last scan: "+timestring+ " ago");
     
     console.log(difference);    

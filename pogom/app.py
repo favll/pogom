@@ -6,6 +6,7 @@ import calendar
 from flask import Flask, jsonify, render_template, request
 from flask.json import JSONEncoder
 from datetime import datetime
+import time
 
 from . import config
 from .models import Pokemon, Gym, Pokestop, SearchConfig
@@ -30,7 +31,7 @@ class Pogom(Flask):
     def map_data(self):
         d = {}
         d['server_status'] = {'login_time': SearchConfig.LOGGED_IN,
-                              'last-successful-request': SearchConfig.LAST_SUCCESSFUL_REQUEST}
+                              'last-successful-request': SearchConfig.LAST_SUCCESSFUL_REQUEST - time.time()}
         
         if request.args.get('pokemon', 'true') == 'true':
             d['pokemons'] = Pokemon.get_active()
