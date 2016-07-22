@@ -276,7 +276,6 @@ function displayCoverage() {
 }
 
 function statusLabels(status) {
-    console.log("setup");
     if (status['login_time'] == 0) {
         $loginStatus.html('Login failed');
         $loginStatus.removeClass('label-success');
@@ -301,7 +300,6 @@ function statusLabels(status) {
     timestring += pad(seconds) + "." + pad(milli) + "s";
     $lastRequestLabel.html("Last scan: "+timestring+ " ago");
     
-    console.log(difference);    
     if (difference <= 2) {
         $lastRequestLabel.removeClass('label-danger');
         $lastRequestLabel.removeClass('label-warning');
