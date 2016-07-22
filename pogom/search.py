@@ -113,7 +113,7 @@ def search(args):
 
     i = 1
     for step_location in generate_location_steps():
-        log.info('Scanning step {:d} of {:d}.'.format(i, num_steps))
+        log.debug('Scanning step {:d} of {:d}.'.format(i, num_steps))
         log.debug('Scan location is {:f}, {:f}'.format(step_location[0], step_location[1]))
 
         response_dict = send_map_request(api, step_location, args)
@@ -125,7 +125,7 @@ def search(args):
         try:
             parse_map(response_dict)
         except KeyError:
-            log.exception('Failed to parse response')
+            log.exception('Failed to parse response: {}'.format(response_dict))
         except:  # make sure we dont crash in the main loop
             log.exception('Unexpected error')
 
