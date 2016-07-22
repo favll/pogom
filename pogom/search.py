@@ -35,9 +35,8 @@ def set_cover():
         oor_counter = 0
         for j in range (0, 6*i):
             angle = (360.0/(6*i)) * j
-            d = math.sqrt(3) * 100 * i * 
+            d = math.sqrt(3) * 100 * i * \
                 math.sin(math.radians(60)) / math.sin(math.radians(120.0-(angle % 60)))
-            log.info("{} {}: {} {}".format(i, j, d, SearchConfig.RADIUS))
             if d < SearchConfig.RADIUS:
                 points.append(Geodesic.WGS84.Direct(lat, lng, angle, d) )
             else:
