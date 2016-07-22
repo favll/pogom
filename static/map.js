@@ -292,6 +292,8 @@ function statusLabels(status) {
     var minutes = Math.floor(difference % 3600 / 60);
     var seconds = Math.floor(difference % 3600 % 60);
     var milli = Math.floor((difference % 3600 % 60 - seconds)*100);
+    
+    if (difference > 31536000) return;
         
     timestring = "";
     if(hours > 0) timestring += hours + "h";
