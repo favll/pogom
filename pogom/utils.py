@@ -34,7 +34,7 @@ def get_args():
     parser.add_argument('-L', '--locale', help='Locale for Pokemon names: default en, check '
                         'locale folder for more options', default='en')
     parser.add_argument('-c', '--china', help='Coordinates transformer for China', action='store_true')
-    parser.add_argument('-d', '--debug', help='Debug Level [info|debug]', action='store_true')
+    parser.add_argument('-d', '--debug', type=str.lower, help='Debug Level [info|debug]', default=None)
     parser.add_argument('-m', '--mock', help='Mock mode. Starts the web server but not the background thread.', action='store_true', default=False)
 
     args = parser.parse_args()

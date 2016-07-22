@@ -77,12 +77,15 @@ def generate_location_steps():
 
 def login(args, position):
     log.info('Attempting login')
+    consecutive_fails = 0
 
     api.set_position(*position)
 
     while not api.login(args.auth_service, args.username, args.password):
-        log.info('Login failed, retrying')
-        time.sleep(REQ_SLEEP)
+        sleep_t = min(math.exp(consecutive_fails / 1.7), 5*60)
+        log.info('Login failed, retrying in {:.2f} seconds'.format(sleep_t))
+        consecutive_fails += 1
+        time.sleep(sleep_t)
 
     log.info('Login successful')
 
