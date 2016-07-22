@@ -1,5 +1,9 @@
 var $selectExclude = $("#exclude-pokemon");
-var excludedPokemon = localStorage.excludedPokemon;
+var excludedPokemon = []
+try {
+    excludedPokemon = JSON.parse(localStorage.excludedPokemon);
+    console.log(excludedPokemon);
+} catch (e) {}
 
 var d = "displayPokemons" in localStorage ? localStorage.displayPokemons : 'true';
 document.getElementById('pokemon-checkbox').checked = (d === 'true');
@@ -23,7 +27,7 @@ $.getJSON("static/locales/pokemon.en.json").done(function(data) {
 
 $selectExclude.on("change", function (e) { 
     excludedPokemon = $selectExclude.val().map(Number);
-    localStorage.excludedPokemon = excludedPokemon;
+    localStorage.excludedPokemon = JSON.stringify(excludedPokemon);
     clearStaleMarkers();
 });
 
