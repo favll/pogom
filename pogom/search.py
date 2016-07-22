@@ -76,6 +76,7 @@ def generate_location_steps():
 
 
 def login(args, position):
+    SearchConfig.LOGGED_IN = 0
     log.info('Attempting login')
     consecutive_fails = 0
 
@@ -87,6 +88,7 @@ def login(args, position):
         consecutive_fails += 1
         time.sleep(sleep_t)
 
+    SearchConfig.LOGGED_IN = time.time()
     log.info('Login successful')
 
 def login_if_necessary(args, position):
@@ -122,6 +124,7 @@ def search(args):
         except:  # make sure we dont crash in the main loop
             log.exception('Unexpected error')
 
+        SearchConfig.LAST_SUCCESSFUL_REQUEST = time.time()
         log.info('Completed {:5.2f}% of scan.'.format(float(i) / num_steps*100))
         i += 1
 

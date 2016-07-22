@@ -19,6 +19,8 @@ class SearchConfig(object):
     ORIGINAL_LONGITUDE = None
     COVER = None
     RADIUS = None
+    LOGGED_IN = 0.0
+    LAST_SUCCESSFUL_REQUEST = 0.0
 
 
 class BaseModel(Model):

@@ -1,5 +1,10 @@
+
+let pad = number => number <= 99 ? ("0"+number).slice(-2) : number;
+
+var $loginStatus = $(".login-status");
+var $lastRequestLabel = $(".last-request");
 var $selectExclude = $("#exclude-pokemon");
-var excludedPokemon = []
+var excludedPokemon = [];
 try {
     excludedPokemon = JSON.parse(localStorage.excludedPokemon);
     console.log(excludedPokemon);
@@ -46,13 +51,13 @@ function initMap() {
         map: map,
         animation: google.maps.Animation.DROP
     });
+    displayCoverage();
 
 };
 
 
 function pokemonLabel(name, disappear_time, id, disappear_time, latitude, longitude) {
     disappear_date = new Date(disappear_time)
-    let pad = number => number <= 99 ? ("0"+number).slice(-2) : number;
     
     var label = `
         <div>
@@ -179,6 +184,7 @@ function updateMap() {
                'gyms': localStorage.displayGyms},
         dataType: "json"
     }).done(function(result){
+        statusLabels(result["server_status"]);
         
         $.each(result.pokemons, function(i, item){
             if (!document.getElementById('pokemon-checkbox').checked) {
@@ -268,7 +274,52 @@ function displayCoverage() {
         });
     });
 }
-displayCoverage();
+
+function statusLabels(status) {
+    console.log("setup");
+    if (status['login_time'] == 0) {
+        $loginStatus.html('Login failed');
+        $loginStatus.removeClass('label-success');
+        $loginStatus.addClass('label-warning');
+    } else {
+        $loginStatus.html('Logged in');
+        $loginStatus.removeClass('label-warning');
+        $loginStatus.addClass('label-success');
+    }
+    
+    var lastRequest = status['last-successful-request'];
+    var now = new Date();
+    
+    
+    var difference = Math.abs(lastRequest - now/1000);
+    var hours = Math.floor(difference / 36e5);
+    var minutes = Math.floor((difference - (hours * 36e5)) / 6e4);
+    var seconds = Math.floor((difference - (hours * 36e5) - (minutes * 6e4)) / 1e3);
+    
+    if (difference < 0) {return;}
+    
+    timestring = "";
+    if(hours > 0) timestring += hours + "h";
+    if(minutes > 0) timestring += pad(minutes) + "m";
+    timestring += pad(seconds) + "s";
+    $lastRequestLabel.html("Last scan: "+timestring+ " ago");
+    
+    console.log(difference);    
+    if (difference <= 2) {
+        $lastRequestLabel.removeClass('label-danger');
+        $lastRequestLabel.removeClass('label-warning');
+        $lastRequestLabel.addClass('label-success');
+    } if (difference > 2 && difference <= 10) {
+        $lastRequestLabel.removeClass('label-danger');
+        $lastRequestLabel.removeClass('label-success');
+        $lastRequestLabel.addClass('label-warning');
+    } if (difference > 10) {
+        $lastRequestLabel.removeClass('label-warning');
+        $lastRequestLabel.removeClass('label-success');
+        $lastRequestLabel.addClass('label-danger');
+    }
+
+}
 
 var updateLabelDiffTime = function() {
     $('.label-countdown').each(function (index, element) {

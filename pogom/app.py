@@ -29,6 +29,9 @@ class Pogom(Flask):
 
     def map_data(self):
         d = {}
+        d['server_status'] = {'login_time': SearchConfig.LOGGED_IN,
+                              'last-successful-request': SearchConfig.LAST_SUCCESSFUL_REQUEST}
+        
         if request.args.get('pokemon', 'true') == 'true':
             d['pokemons'] = Pokemon.get_active()
 

@@ -155,6 +155,27 @@ html, body {
 }
 span.select2 { width: 100% !important; }
 
+.label-success {
+    background-color: #5cb85c;
+}
+.label-warning {
+    background-color: #f0ad4e;
+}
+.label-danger {
+    background-color: #d9534f;
+}
+.label {
+    display: inline-block;
+    padding: .25em .4em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25rem;
+}
 
 
             </style>
@@ -170,6 +191,11 @@ span.select2 { width: 100% !important; }
             <div id="menu">
                 <div id="menu-container">
                     <h1>Settings</h1>
+                    <p>
+                        <span class='login-status label label-warning'>Not authenticated</span>
+                        <span class='last-request label label-warning'>No scans yet</span>
+                    </p>
+
                     <fieldset>
                         <input type="checkbox" id="pokemon-checkbox">
                         <label for="pokemon-checkbox">Display Pokemon</label><br> 
