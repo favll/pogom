@@ -10,6 +10,7 @@ import requests
 import time
 import s2sphere as s2
 import math
+from sys import maxint
 from geographiclib.geodesic import Geodesic
 from pgoapi import PGoApi
 from pgoapi.utilities import f2i, h2f, get_cellid, encode, get_pos_by_name
@@ -28,16 +29,21 @@ api = PGoApi()
 def set_cover():
     lat = SearchConfig.ORIGINAL_LATITUDE
     lng = SearchConfig.ORIGINAL_LONGITUDE
-    num_steps = int(math.ceil((float(SearchConfig.RADIUS)-100)/200) + 1)
-    s = math.sqrt(3)*100
     
-    num_step = 2
     points = []
-    for i in range(1, num_steps):
+    for i in xrange(1, maxint):
+        oor_counter = 0
         for j in range (0, 6*i):
             angle = (360.0/(6*i)) * j
-            d = s * i * math.sin(math.radians(60)) / math.sin(math.radians(120.0-(angle % 60)))
-            points.append(Geodesic.WGS84.Direct(lat, lng, angle, d) )
+            d = math.sqrt(3) * 100 * i * 
+                math.sin(math.radians(60)) / math.sin(math.radians(120.0-(angle % 60)))
+            log.info("{} {}: {} {}".format(i, j, d, SearchConfig.RADIUS))
+            if d < SearchConfig.RADIUS:
+                points.append(Geodesic.WGS84.Direct(lat, lng, angle, d) )
+            else:
+                oor_counter += 1
+        if oor_counter == 6*i:
+            break
         
     cover = [ {"lat": p['lat2'], "lng": p['lon2']} for p in points ]
     cover.append(  {"lat": lat, "lng": lng} )
