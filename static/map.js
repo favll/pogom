@@ -292,9 +292,9 @@ function statusLabels(status) {
     
     
     var difference = Math.abs(lastRequest - now/1000);
-    var hours = Math.floor(difference / 36e5);
-    var minutes = Math.floor((difference - (hours * 36e5)) / 6e4);
-    var seconds = Math.floor((difference - (hours * 36e5) - (minutes * 6e4)) / 1e3);
+    var hours = Math.floor(difference / 3600);
+    var minutes = Math.floor((difference - (hours * 3600)) / 60);
+    var seconds = Math.floor((difference - (hours * 3600) - (minutes * 60)) / 60);
     
     if (difference < 0) {return;}
     
