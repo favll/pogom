@@ -166,6 +166,9 @@ span.select2 { width: 100% !important; }
 .label-danger {
     background-color: #d9534f;
 }
+.label-grey {
+    background-color: #777;
+}
 .label {
     display: inline-block;
     padding: .25em .4em;
@@ -177,6 +180,7 @@ span.select2 { width: 100% !important; }
     white-space: nowrap;
     vertical-align: baseline;
     border-radius: .25rem;
+    margin-bottom: 2px;
 }
 
 .chckbox {
@@ -199,7 +203,8 @@ span.select2 { width: 100% !important; }
                     <h1>Settings</h1>
                     <p>
                         <span class='login-status label label-warning'>Not authenticated</span>
-                        <span class='last-request label label-warning'>No scans yet</span>
+                        <span class='last-request label label-warning'>No scans yet</span> <br />
+                        <span class='full-scan label label-grey'>No full scan yet</span>
                     </p>
 
                     <fieldset style="border: 0; padding-left: 0;">

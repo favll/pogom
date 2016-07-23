@@ -186,6 +186,7 @@ def callback(response_dict):
 
     try:
         parse_map(response_dict)
+        SearchConfig.LAST_SUCCESSFUL_REQUEST = time.time()
         log.debug("Parsed & saved.")
     except KeyError:
         log.exception('Failed to parse response: {}'.format(response_dict))
@@ -197,16 +198,18 @@ def throttle():
     if scan_start_time == 0:
         return
 
-    sleep_time = min_time_per_scan - (time.time() - scan_start_time)
+    sleep_time = max(min_time_per_scan - (time.time() - scan_start_time), 0)
     log.info("Scan finished. Sleeping {:.2f} seconds before continuing.".format(sleep_time))
+    SearchConfig.LAST_SUCCESSFUL_REQUEST = -1
     time.sleep(sleep_time)
 
 
 def search_loop_async(args):
     while True:
         throttle()
-        queue.extend(SearchConfig.COVER)
+        queue.extend(SearchConfig.COVER[::-1])
         search_async(args)
+        SearchConfig.COMPLETE_SCAN_TIME = time.time() - scan_start_time
 
 
 def search_loop(args):

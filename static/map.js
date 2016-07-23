@@ -3,10 +3,14 @@ let pad = number => number <= 99 ? ("0"+number).slice(-2) : number;
 
 var $loginStatus = $(".login-status");
 var $lastRequestLabel = $(".last-request");
+var $fullScanLabel = $(".full-scan");
+
 var $selectExclude = $("#exclude-pokemon");
 var excludedPokemon = [];
 
 var map;
+var coverCircle;
+var searchLocation = {};
 var newLocationMarker;
 var currentLocationMarker;
 
@@ -21,7 +25,7 @@ d = "displayGyms" in localStorage ? localStorage.displayGyms : 'true';
 document.getElementById('gyms-checkbox').checked = (d === 'true');
 
 $.getJSON("static/locales/pokemon.en.json").done(function(data) {
-    var pokeList = []
+    var pokeList = [];
     
     $.each(data, function(key, value) {
         pokeList.push( { id: key, text: value } );
@@ -29,7 +33,7 @@ $.getJSON("static/locales/pokemon.en.json").done(function(data) {
     
     $selectExclude.select2({
         placeholder: "Type to exclude Pokemon",
-        data: pokeList,
+        data: pokeList
     });
     $selectExclude.val(excludedPokemon).trigger("change");
 });
@@ -43,25 +47,29 @@ $selectExclude.on("change", function (e) {
 
 // change-location button listener
 $('#map').on('click', '#new-loc-btn', function () {
-    
+     newLocationMarker.setMap(null);
+
     $.post("set-location", 
            {'lat': newLocationMarker.getPosition().lat(), 
-            'lng':  newLocationMarker.getPosition().lng()}, 
+            'lng':  newLocationMarker.getPosition().lng()},
         function( data ) {
-            displayCoverage();
-            newLocationMarker.setMap(null);
+            updateMap();
         }, "json");
 });
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: {lat: center_lat, lng: center_lng},
-        zoom: 15,
+        zoom: 13,
         mapTypeControl: false,
         streetViewControl: false
     });
-    
-    displayCoverage();
+
+    currentLocationMarker = new google.maps.Marker({
+        position: {lat: center_lat, lng: center_lng},
+        map: map,
+        animation: google.maps.Animation.DROP
+    });
 
     // on click listener for 
     google.maps.event.addListener(map, 'click', function(event) {
@@ -213,7 +221,38 @@ function updateMap() {
     }).done(function(result){
         statusLabels(result["server_status"]);
         
-        $.each(result.pokemons, function(i, item){
+         if (JSON.stringify(result['search_area']) !== JSON.stringify(searchLocation)) {
+            searchLocation = result['search_area'];
+
+            if (currentLocationMarker) currentLocationMarker.setMap(null);
+            currentLocationMarker = new google.maps.Marker({
+                position: searchLocation,
+                map: map,
+                animation: google.maps.Animation.DROP
+            });
+
+            console.log("is different");
+            if (coverCircle) {
+                coverCircle.setCenter(searchLocation);
+                coverCircle.setRadius(searchLocation['radius']);
+            } else {
+                coverCircle = new google.maps.Circle({
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.6,
+                    strokeWeight: 1,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.08,
+                    clickable: false,
+                    map: map,
+                    center: searchLocation,
+                    radius: searchLocation['radius']
+                });
+            }
+        } else {
+            console.log("not different");
+        }
+
+       $.each(result.pokemons, function(i, item){
             if (!document.getElementById('pokemon-checkbox').checked) {
                 return false; // in case the checkbox was unchecked in the meantime.
             }
@@ -249,8 +288,8 @@ function updateMap() {
                 item.marker = setupGymMarker(item);
                 map_gyms[item.gym_id] = item;
             }
-            
         });
+
         clearStaleMarkers();
     });
 }
@@ -282,8 +321,8 @@ $('#pokemon-checkbox').change(function() {
     }
 });
 
-    
 var coverCircles = [];
+/*
 function displayCoverage() {
     if (currentLocationMarker) currentLocationMarker.setMap(null);
     
@@ -313,6 +352,7 @@ function displayCoverage() {
         });
     });
 }
+*/
 
 function statusLabels(status) {
     if (status['login_time'] == 0) {
@@ -324,45 +364,55 @@ function statusLabels(status) {
         $loginStatus.removeClass('label-danger label-warning');
         $loginStatus.addClass('label-success');
     }
-    
-    
-    var difference = -status['last-successful-request'];
+
+    var difference = status['last-successful-request'];
+
+    if (difference == 'none') {
+
+    } else if (difference == 'sleep') {
+        $lastRequestLabel.removeClass('label-danger label-warning');
+        $lastRequestLabel.addClass('label-success');
+        $lastRequestLabel.html("Sleeping");
+    } else {
+        var timestring = formatTimeDiff(difference);
+        if (difference <= 2) {
+            $lastRequestLabel.removeClass('label-danger label-warning');
+            $lastRequestLabel.addClass('label-success');
+        } if (difference > 2 && difference <= 30) {
+            $lastRequestLabel.removeClass('label-success label-danger');
+            $lastRequestLabel.addClass('label-warning');
+        } if (difference > 30) {
+            $lastRequestLabel.removeClass('label-success label-warning');
+            $lastRequestLabel.addClass('label-danger');
+        }
+        $lastRequestLabel.html("Last scan: "+timestring+ " ago");
+    }
+
+    var timeSinceScan = status['complete-scan-time'];
+    if (timeSinceScan)
+        $fullScanLabel.html("Last full scan in "+ formatTimeDiff(timeSinceScan))
+
+}
+
+function formatTimeDiff(difference) {
     var hours = Math.floor(difference / 3600);
     var minutes = Math.floor(difference % 3600 / 60);
     var seconds = Math.floor(difference % 3600 % 60);
     var milli = Math.floor((difference % 3600 % 60 - seconds)*100);
-    
-    if (difference > 31536000) return;
 
     var timestring = "";
     if(hours > 0) timestring += hours + "h";
     if(minutes > 0) timestring += pad(minutes) + "m";
     if (hours == 0) {
         timestring += pad(seconds);
-        
+
         if (hours > 0 || minutes > 0) {
             timestring += "s"
         } else {
              timestring += "." + pad(milli) + "s"
         }
     }
-        
-    $lastRequestLabel.html("Last scan: "+timestring+ " ago");
-    
-    if (difference <= 2) {
-        $lastRequestLabel.removeClass('label-danger');
-        $lastRequestLabel.removeClass('label-warning');
-        $lastRequestLabel.addClass('label-success');
-    } if (difference > 2 && difference <= 30) {
-        $lastRequestLabel.removeClass('label-danger');
-        $lastRequestLabel.removeClass('label-success');
-        $lastRequestLabel.addClass('label-warning');
-    } if (difference > 30) {
-        $lastRequestLabel.removeClass('label-warning');
-        $lastRequestLabel.removeClass('label-success');
-        $lastRequestLabel.addClass('label-danger');
-    }
-
+    return timestring;
 }
 
 var updateLabelDiffTime = function() {

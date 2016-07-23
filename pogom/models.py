@@ -9,7 +9,11 @@ from base64 import b64encode
 
 from .utils import get_pokemon_name
 
-db = SqliteDatabase('pogom.db')
+db = SqliteDatabase('pogom.db', pragmas=(
+    ('journal_mode', 'WAL'),
+    ('cache_size', 10000),
+    ('mmap_size', 1024 * 1024 * 32),
+))
 log = logging.getLogger(__name__)
 
 
@@ -18,9 +22,12 @@ class SearchConfig(object):
     ORIGINAL_LONGITUDE = None
     COVER = None
     RADIUS = None
+
+    CHANGE = False  # Triggered when the setup is changed due to user input
+
     LOGGED_IN = 0.0
     LAST_SUCCESSFUL_REQUEST = 0.0
-    CHANGE = False  # Triggered when the setup is changed due to user input
+    COMPLETE_SCAN_TIME = 0
 
 
 class BaseModel(Model):
@@ -93,6 +100,23 @@ def parse_map(map_dict):
         for p in cell.get('wild_pokemons', []):
             if p['encounter_id'] in pokemons:
                 continue  # prevent unnecessary parsing
+
+            pokemons[p['encounter_id']] = {
+                'encounter_id': b64encode(str(p['encounter_id'])),
+                'spawnpoint_id': p['spawnpoint_id'],
+                'pokemon_id': p['pokemon_data']['pokemon_id'],
+                'latitude': p['latitude'],
+                'longitude': p['longitude'],
+                'disappear_time': datetime.utcfromtimestamp(
+                        (p['last_modified_timestamp_ms'] +
+                         p['time_till_hidden_ms']) / 1000.0)
+            }
+
+        for p in cell.get('catchable_pokemons', []):
+            if p['encounter_id'] in pokemons:
+                continue  # prevent unnecessary parsing
+
+            log.critical("found catchable pokemon not in wild: {}".format(p))
 
             pokemons[p['encounter_id']] = {
                 'encounter_id': b64encode(str(p['encounter_id'])),

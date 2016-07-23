@@ -32,8 +32,20 @@ class Pogom(Flask):
 
     def map_data(self):
         d = {}
+
+        if not SearchConfig.LAST_SUCCESSFUL_REQUEST:
+            time_since_last_req = "na"
+        elif SearchConfig.LAST_SUCCESSFUL_REQUEST == -1:
+            time_since_last_req = "sleep"
+        else:
+            time_since_last_req = time.time() - SearchConfig.LAST_SUCCESSFUL_REQUEST
+
         d['server_status'] = {'login_time': SearchConfig.LOGGED_IN,
-                              'last-successful-request': SearchConfig.LAST_SUCCESSFUL_REQUEST - time.time()}
+                              'last-successful-request': time_since_last_req,
+                              'complete-scan-time': SearchConfig.COMPLETE_SCAN_TIME}
+        d['search_area'] = {'lat': SearchConfig.ORIGINAL_LATITUDE,
+                            'lng': SearchConfig.ORIGINAL_LONGITUDE,
+                            'radius': SearchConfig.RADIUS}
 
         if request.args.get('pokemon', 'true') == 'true':
             d['pokemons'] = Pokemon.get_active()
