@@ -5,6 +5,8 @@ import logging
 
 from threading import Thread
 
+import sys
+
 from pogom import config
 from pogom.app import Pogom
 from pogom.search import search_loop, set_cover, set_location
@@ -25,7 +27,7 @@ def start_locator_thread(args):
 if __name__ == '__main__':
     args = get_args()
 
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(module)11s] [%(levelname)7s] %(message)s')
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s [%(module)11s] [%(levelname)7s] %(message)s')
     if not args.debug:
         logging.getLogger("peewee").setLevel(logging.INFO)
         logging.getLogger("requests").setLevel(logging.WARNING)
