@@ -96,9 +96,10 @@ def login(args, position):
     SearchConfig.LOGGED_IN = time.time()
     log.info('Login successful')
 
+
 def login_if_necessary(args, position):
-    if api._auth_provider and api._auth_provider._ticket_expire:
-        remaining_time = api._auth_provider._ticket_expire/1000 - time.time()
+    if api._rpc.auth_provider and api._rpc.auth_provider._ticket_expire:
+        remaining_time = api._rpc.auth_provider._ticket_expire/1000 - time.time()
 
         if remaining_time < 60:
             log.info("Login has or is about to expire")
