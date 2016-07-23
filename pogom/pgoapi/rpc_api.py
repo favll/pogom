@@ -46,7 +46,7 @@ class RpcApi:
         self._session.headers.update({'User-Agent': 'Niantic App'})
         self._session.verify = True
 
-        self._auth_provider = None
+        self.auth_provider = None
 
     def get_rpc_id(self):
         return 8145806132888207460
@@ -63,7 +63,7 @@ class RpcApi:
         return output
 
     def _make_rpc(self, endpoint, request_proto_plain):
-        self.log.debug('Execution of RPC')
+        log.debug('Execution of RPC')
 
         request_proto_serialized = request_proto_plain.SerializeToString()
         try:
@@ -80,12 +80,12 @@ class RpcApi:
         request_proto = self._build_main_request(subrequests, player_position)
         response = self._make_rpc(endpoint, request_proto)
 
-        response_dict = self._parse_main_request(response, subrequests)
+        response_dict = parse_main_request(response, subrequests)
 
         return response_dict
 
     def _build_main_request(self, subrequests, player_position=None):
-        self.log.debug('Generating main RPC request...')
+        log.debug('Generating main RPC request...')
 
         request = RpcEnvelope.Request()
         request.direction = RpcEnum.REQUEST
