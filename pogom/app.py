@@ -34,7 +34,7 @@ class Pogom(Flask):
         d = {}
         d['server_status'] = {'login_time': SearchConfig.LOGGED_IN,
                               'last-successful-request': SearchConfig.LAST_SUCCESSFUL_REQUEST - time.time()}
-        
+
         if request.args.get('pokemon', 'true') == 'true':
             d['pokemons'] = Pokemon.get_active()
 
@@ -49,10 +49,10 @@ class Pogom(Flask):
         return jsonify(d)
 
     def cover(self):
-        return jsonify( { 'cover': SearchConfig.COVER, 
-                          'center': { 'lat': SearchConfig.ORIGINAL_LATITUDE, 
-                                      'lng': SearchConfig.ORIGINAL_LONGITUDE} } )
-        
+        return jsonify({'cover': SearchConfig.COVER,
+                        'center': {'lat': SearchConfig.ORIGINAL_LATITUDE,
+                                   'lng': SearchConfig.ORIGINAL_LONGITUDE}})
+
     def set_location(self):
         log.info(request.args)
         log.info(request.data)
@@ -61,28 +61,27 @@ class Pogom(Flask):
         lng = request.values.get('lng', type=float)
         log.info("{} {}".format(lat, type(lat)))
         log.info("{} {}".format(lng, type(lng)))
-        
+
         if not (lat and lng):
             abort(400)
-        
+
         SearchConfig.ORIGINAL_LATITUDE = lat
         SearchConfig.ORIGINAL_LONGITUDE = lng
         SearchConfig.CHANGE = True
         set_cover()
-        
+
         return ('', 204)
 
 
 class CustomJSONEncoder(JSONEncoder):
-
     def default(self, obj):
         try:
             if isinstance(obj, datetime):
                 if obj.utcoffset() is not None:
                     obj = obj - obj.utcoffset()
                 millis = int(
-                    calendar.timegm(obj.timetuple()) * 1000 +
-                    obj.microsecond / 1000
+                        calendar.timegm(obj.timetuple()) * 1000 +
+                        obj.microsecond / 1000
                 )
                 return millis
             iterable = iter(obj)

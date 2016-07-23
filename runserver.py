@@ -2,17 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import logging
-
-from threading import Thread
-
 import sys
+from threading import Thread
 
 from pogom import config
 from pogom.app import Pogom
+from pogom.models import create_tables
 from pogom.search import search_loop, set_cover, set_location
 from pogom.utils import get_args, insert_mock_data
-from pogom.models import create_tables, SearchConfig
-from pogom.pgoapi.utilities import get_pos_by_name
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +24,8 @@ def start_locator_thread(args):
 if __name__ == '__main__':
     args = get_args()
 
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s [%(module)11s] [%(levelname)7s] %(message)s')
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO,
+                        format='%(asctime)s [%(module)11s] [%(levelname)7s] %(message)s')
     if not args.debug:
         logging.getLogger("peewee").setLevel(logging.INFO)
         logging.getLogger("requests").setLevel(logging.WARNING)
