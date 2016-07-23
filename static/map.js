@@ -1,4 +1,4 @@
-
+"use strict"
 let pad = number => number <= 99 ? ("0"+number).slice(-2) : number;
 
 var $loginStatus = $(".login-status");
@@ -83,8 +83,8 @@ function initMap() {
 };
 
 
-function pokemonLabel(name, disappear_time, id, disappear_time, latitude, longitude) {
-    disappear_date = new Date(disappear_time)
+function pokemonLabel(name, disappear_time, id, latitude, longitude) {
+    var disappear_date = new Date(disappear_time);
     
     var label = `
         <div>
@@ -129,8 +129,8 @@ function gymLabel(team_name, team_id, gym_points) {
 }
 
 
-map_pokemons = {} // dict containing all pokemons on the map.
-map_gyms = {}
+var map_pokemons = {}; // dict containing all pokemons on the map.
+var map_gyms = {};
 var gym_types = [ "Uncontested", "Mystic", "Valor", "Instinct" ];
 
 function setupPokemonMarker(item) {
@@ -148,7 +148,7 @@ function setupPokemonMarker(item) {
     
     addListeners(marker);
     return marker;
-};
+}
 
 function setupGymMarker(item) {
     var marker = new google.maps.Marker({
@@ -163,7 +163,7 @@ function setupGymMarker(item) {
     
     addListeners(marker);
     return marker;
-};
+}
 
 function addListeners(marker){
     marker.addListener('click', function() {
@@ -187,7 +187,7 @@ function addListeners(marker){
         }
     });
     return marker
-};
+}
 
 function clearStaleMarkers(){
     $.each(map_pokemons, function(key, value) {
@@ -199,7 +199,7 @@ function clearStaleMarkers(){
             delete map_pokemons[key];
         }
     });
-};
+}
 
 function updateMap() {
     $.ajax({
@@ -253,7 +253,7 @@ function updateMap() {
         });
         clearStaleMarkers();
     });
-};
+}
 
 window.setInterval(updateMap, 10000);
 updateMap();
@@ -333,9 +333,8 @@ function statusLabels(status) {
     var milli = Math.floor((difference % 3600 % 60 - seconds)*100);
     
     if (difference > 31536000) return;
-    
-    
-    timestring = "";
+
+    var timestring = "";
     if(hours > 0) timestring += hours + "h";
     if(minutes > 0) timestring += pad(minutes) + "m";
     if (hours == 0) {
@@ -375,7 +374,8 @@ var updateLabelDiffTime = function() {
         var hours = Math.floor(difference / 36e5);
         var minutes = Math.floor((difference - (hours * 36e5)) / 6e4);
         var seconds = Math.floor((difference - (hours * 36e5) - (minutes * 6e4)) / 1e3);
-        
+
+        var timestring = "";
         if(disappearsAt < now){
             timestring = "(expired)";
         } 
