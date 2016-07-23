@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from peewee import Model, SqliteDatabase, InsertQuery, IntegerField,\
-                   CharField, FloatField, BooleanField, DateTimeField
+from peewee import Model, SqliteDatabase, InsertQuery, IntegerField, \
+    CharField, FloatField, BooleanField, DateTimeField
 from datetime import datetime
 from base64 import b64encode
 
 from .utils import get_pokemon_name
-
 
 db = SqliteDatabase('pogom.db')
 log = logging.getLogger(__name__)
@@ -94,7 +93,7 @@ def parse_map(map_dict):
         for p in cell.get('wild_pokemons', []):
             if p['encounter_id'] in pokemons:
                 continue  # prevent unnecessary parsing
-            
+
             pokemons[p['encounter_id']] = {
                 'encounter_id': b64encode(str(p['encounter_id'])),
                 'spawnpoint_id': p['spawnpoint_id'],
@@ -102,18 +101,18 @@ def parse_map(map_dict):
                 'latitude': p['latitude'],
                 'longitude': p['longitude'],
                 'disappear_time': datetime.utcfromtimestamp(
-                    (p['last_modified_timestamp_ms'] +
-                     p['time_till_hidden_ms']) / 1000.0)
+                        (p['last_modified_timestamp_ms'] +
+                         p['time_till_hidden_ms']) / 1000.0)
             }
 
         for f in cell.get('forts', []):
             if f['id'] in gyms or f['id'] in pokestops:
                 continue  # prevent unnecessary parsing
-                
+
             if f.get('type') == 1:  # Pokestops
                 if 'lure_info' in f:
                     lure_expiration = datetime.utcfromtimestamp(
-                        f['lure_info']['lure_expires_timestamp_ms'] / 1000.0)
+                            f['lure_info']['lure_expires_timestamp_ms'] / 1000.0)
                     active_pokemon_id = f['lure_info']['active_pokemon_id']
                 else:
                     lure_expiration, active_pokemon_id = None, None
@@ -124,7 +123,7 @@ def parse_map(map_dict):
                     'latitude': f['latitude'],
                     'longitude': f['longitude'],
                     'last_modified': datetime.utcfromtimestamp(
-                        f['last_modified_timestamp_ms'] / 1000.0),
+                            f['last_modified_timestamp_ms'] / 1000.0),
                     'lure_expiration': lure_expiration,
                     'active_pokemon_id': active_pokemon_id
                 }
@@ -139,7 +138,7 @@ def parse_map(map_dict):
                     'latitude': f['latitude'],
                     'longitude': f['longitude'],
                     'last_modified': datetime.utcfromtimestamp(
-                        f['last_modified_timestamp_ms'] / 1000.0),
+                            f['last_modified_timestamp_ms'] / 1000.0),
                 }
 
     if pokemons:
@@ -154,17 +153,16 @@ def parse_map(map_dict):
         log.info("Upserting {} gyms".format(len(gyms)))
         bulk_upsert(Gym, gyms)
 
-        
+
 def bulk_upsert(cls, data):
     num_rows = len(data.values())
     i = 0
     step = 100
-    
+
     while i < num_rows:
-        log.debug("Inserting items {} to {}".format(i, min(i+step, num_rows)))
-        InsertQuery(cls, rows=data.values()[i:min(i+step, num_rows)]).upsert().execute()
-        i+=step
-        
+        log.debug("Inserting items {} to {}".format(i, min(i + step, num_rows)))
+        InsertQuery(cls, rows=data.values()[i:min(i + step, num_rows)]).upsert().execute()
+        i += step
 
 
 def create_tables():

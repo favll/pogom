@@ -33,21 +33,25 @@ from geopy.geocoders import GoogleV3
 
 
 def f2i(float):
-  return struct.unpack('<Q', struct.pack('<d', float))[0]
+    return struct.unpack('<Q', struct.pack('<d', float))[0]
+
 
 def f2h(float):
-  return hex(struct.unpack('<Q', struct.pack('<d', float))[0])
+    return hex(struct.unpack('<Q', struct.pack('<d', float))[0])
+
 
 def h2f(hex):
-  return struct.unpack('<d', struct.pack('<Q', int(hex,16)))[0]
-  
-def to_camel_case(value):
-  def camelcase():
-    while True:
-      yield str.capitalize
+    return struct.unpack('<d', struct.pack('<Q', int(hex, 16)))[0]
 
-  c = camelcase()
-  return "".join(c.next()(x) if x else '_' for x in value.split("_"))
+
+def to_camel_case(value):
+    def camelcase():
+        while True:
+            yield str.capitalize
+
+    c = camelcase()
+    return "".join(c.next()(x) if x else '_' for x in value.split("_"))
+
 
 def get_pos_by_name(location_name):
     prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
@@ -58,15 +62,16 @@ def get_pos_by_name(location_name):
         geolocator = GoogleV3()
         loc = geolocator.geocode(location_name)
         latitude, longitude, altitude = loc.latitude, loc.longitude, loc.altitude
-    
+
     return (latitude, longitude, altitude)
-    
+
 
 def get_class(cls):
     module_, class_ = cls.rsplit('.', 1)
     class_ = getattr(import_module(module_), class_)
     return class_
-    
+
+
 def get_cellid(lat, long):
     origin = CellId.from_lat_lng(LatLng.from_degrees(lat, long)).parent(15)
     walk = [origin.id()]
@@ -80,6 +85,7 @@ def get_cellid(lat, long):
         next = next.next()
         prev = prev.prev()
     return ''.join(map(encode, sorted(walk)))
+
 
 def encode(cellid):
     output = []

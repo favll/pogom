@@ -1,22 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
-import re
-import json
-import struct
 import logging
-import requests
-import time
-import s2sphere as s2
 import math
+import time
 from sys import maxint
+
 from geographiclib.geodesic import Geodesic
+
 from pgoapi import PGoApi
-from pgoapi.utilities import f2i, h2f, get_cellid, encode, get_pos_by_name
-
-
-from . import config
+from pgoapi.utilities import f2i, get_cellid, get_pos_by_name
 from .models import parse_map, SearchConfig
 
 log = logging.getLogger(__name__)
@@ -29,24 +22,24 @@ api = PGoApi()
 def set_cover():
     lat = SearchConfig.ORIGINAL_LATITUDE
     lng = SearchConfig.ORIGINAL_LONGITUDE
-    
+
     points = []
     for i in xrange(1, maxint):
         oor_counter = 0
-        for j in range (0, 6*i):
-            angle = (360.0/(6*i)) * j
+        for j in range(0, 6 * i):
+            angle = (360.0 / (6 * i)) * j
             d = math.sqrt(3) * 100 * i * \
-                math.sin(math.radians(60)) / math.sin(math.radians(120.0-(angle % 60)))
+                math.sin(math.radians(60)) / math.sin(math.radians(120.0 - (angle % 60)))
             if d < SearchConfig.RADIUS:
-                points.append(Geodesic.WGS84.Direct(lat, lng, angle, d) )
+                points.append(Geodesic.WGS84.Direct(lat, lng, angle, d))
             else:
                 oor_counter += 1
-        if oor_counter == 6*i:
+        if oor_counter == 6 * i:
             break
-        
-    cover = [ {"lat": p['lat2'], "lng": p['lon2']} for p in points ]
-    cover.append(  {"lat": lat, "lng": lng} )
-    
+
+    cover = [{"lat": p['lat2'], "lng": p['lon2']} for p in points]
+    cover.append({"lat": lat, "lng": lng})
+
     SearchConfig.COVER = cover
 
 
@@ -63,7 +56,7 @@ def set_location(location, radius):
 def send_map_request(api, position, args):
     try:
         login_if_necessary(args, position)
-    
+
         api.set_position(*position)
         api.get_map_objects(latitude=f2i(position[0]),
                             longitude=f2i(position[1]),
@@ -88,7 +81,7 @@ def login(args, position):
     api.set_position(*position)
 
     while not api.login(args.auth_service, args.username, args.password):
-        sleep_t = min(math.exp(consecutive_fails / 1.7), 5*60)
+        sleep_t = min(math.exp(consecutive_fails / 1.7), 5 * 60)
         log.info('Login failed, retrying in {:.2f} seconds'.format(sleep_t))
         consecutive_fails += 1
         time.sleep(sleep_t)
@@ -99,7 +92,7 @@ def login(args, position):
 
 def login_if_necessary(args, position):
     if api._rpc.auth_provider and api._rpc.auth_provider._ticket_expire:
-        remaining_time = api._rpc.auth_provider._ticket_expire/1000 - time.time()
+        remaining_time = api._rpc.auth_provider._ticket_expire / 1000 - time.time()
 
         if remaining_time < 60:
             log.info("Login has or is about to expire")
@@ -131,12 +124,12 @@ def search(args):
             log.exception('Unexpected error')
 
         SearchConfig.LAST_SUCCESSFUL_REQUEST = time.time()
-        log.info('Completed {:5.2f}% of scan.'.format(float(i) / num_steps*100))
-        
+        log.info('Completed {:5.2f}% of scan.'.format(float(i) / num_steps * 100))
+
         if SearchConfig.CHANGE:
             SearchConfig.CHANGE = False
-            break            
-        
+            break
+
         i += 1
 
 

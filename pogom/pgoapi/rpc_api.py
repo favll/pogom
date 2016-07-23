@@ -39,20 +39,21 @@ log = logging.getLogger(__name__)
 
 RPC_ID = 8145806132888207460
 
+
 class RpcApi:
-    
     def __init__(self):
         self._session = requests.session()
         self._session.headers.update({'User-Agent': 'Niantic App'})
         self._session.verify = True
-        
+
         self._auth_provider = None
 
     def get_rpc_id(self):
         return 8145806132888207460
 
     def decode_raw(self, raw):
-        process = subprocess.Popen(['protoc', '--decode_raw'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(['protoc', '--decode_raw'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
         output = error = None
         try:
             output, error = process.communicate(raw)
@@ -83,7 +84,7 @@ class RpcApi:
 
         return response_dict
 
-    def _build_main_request(self, subrequests, player_position = None):
+    def _build_main_request(self, subrequests, player_position=None):
         self.log.debug('Generating main RPC request...')
 
         request = RpcEnvelope.Request()
@@ -93,8 +94,8 @@ class RpcApi:
         if player_position is not None:
             request.latitude, request.longitude, request.altitude = player_position
 
-        # ticket = self._auth_provider.get_ticket()
-        # if ticket:
+            # ticket = self._auth_provider.get_ticket()
+            # if ticket:
             # request.auth_ticket.expire_timestamp_ms, request.auth_ticket.start, request.auth_ticket.end = ticket
         # else:
         request.auth.provider = self.auth_provider.get_name()
@@ -106,7 +107,7 @@ class RpcApi:
 
         request = build_sub_requests(request, subrequests)
 
-        log.debug('Generated protobuf request: \n\r%s', request )
+        log.debug('Generated protobuf request: \n\r%s', request)
 
         return request
 
@@ -128,14 +129,14 @@ def build_sub_requests(mainrequest, subrequest_list):
 
             for (key, value) in entry_content.items():
                 # if isinstance(value, list):
-                    # for i in value:
-                        # r = getattr(subrequest_extension, key)
-                        # setattr(r, key, value)
+                # for i in value:
+                # r = getattr(subrequest_extension, key)
+                # setattr(r, key, value)
                 # else:
                 try:
                     setattr(subrequest_extension, key, value)
                 except Exception as e:
-                   log.info('Argument %s with value %s unknown inside %s', key, value, proto_name)
+                    log.info('Argument %s with value %s unknown inside %s', key, value, proto_name)
 
             subrequest = mainrequest.requests.add()
             subrequest.type = entry_id
@@ -181,10 +182,10 @@ def parse_sub_responses(response_proto, subrequests_list, response_proto_dict):
     log.debug('Parsing sub RPC responses...')
     response_proto_dict['responses'] = {}
 
-    list_len = len(subrequests_list) -1
+    list_len = len(subrequests_list) - 1
     i = 0
     for subresponse in response_proto.responses:
-        #log.debug( self.decode_raw(subresponse) )
+        # log.debug( self.decode_raw(subresponse) )
 
         if i > list_len:
             log.info("Error - something strange happend...")
@@ -193,7 +194,7 @@ def parse_sub_responses(response_proto, subrequests_list, response_proto_dict):
         if isinstance(request_entry, int):
             entry_id = request_entry
         else:
-            entry_id =  request_entry.items()[0][0]
+            entry_id = request_entry.items()[0][0]
 
         entry_name = RpcEnum.RequestMethod.Name(entry_id)
         proto_name = to_camel_case(entry_name.lower()) + 'Response'
