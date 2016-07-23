@@ -52,9 +52,9 @@ class RpcApi:
 
         self.auth_provider = None
 
-        self._curl = ParallelCurl({pycurl.FOLLOWLOCATION: 1, pycurl.MAXREDIRS: 5, pycurl.CONNECTTIMEOUT: 10,
+        self._curl = ParallelCurl({pycurl.FOLLOWLOCATION: 1, pycurl.MAXREDIRS: 5, pycurl.TIMEOUT: 10,
                                    pycurl.NOSIGNAL: 1, pycurl.DNS_SERVERS: '8.8.8.8', pycurl.USERAGENT: 'Niantic App',
-                                   pycurl.ENCODING: 'gzip,deflate', pycurl.CAINFO: certifi.where()}, 15)
+                                   pycurl.ENCODING: 'gzip,deflate', pycurl.CAINFO: certifi.where()}, 8)
 
     def get_rpc_id(self):
         return 8145806132888207460

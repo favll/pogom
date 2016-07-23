@@ -232,52 +232,29 @@ class ParallelCurl:
             return
 
         now = time.clock()
-
-        # Remove requests that have finished before our sampling period starts.
-        self._request_stats = {k: v for k, v in self._request_stats.items() if not k < now - self._sampling_interval}
-        sample_request_count = len(self._request_stats)
-
         total_time = now - self._start_time
-        sample_time = min(self._sampling_interval, total_time)
 
-        total_rps = self.num_reqs / total_time
+        total_rps = len(self._request_stats) / total_time
         total_speed_up = self._total_size_up / total_time
         total_speed_dl = self._total_size_dl / total_time
-
-        self.sample_rps = sample_request_count / sample_time
-        sample_speed_up = sum((v[2] for _, v in self._request_stats.items())) / sample_time
-        sample_speed_dl = sum((v[3] for _, v in self._request_stats.items())) / sample_time
-
-
-        if sample_request_count != 0:
-            size_up = sum((v[2] for _, v in self._request_stats.items())) / sample_request_count
-            size_dl = sum((v[3] for _, v in self._request_stats.items())) / sample_request_count
-            av_req_time = sum((v[1] - v[0] for _, v in self._request_stats.items())) / len(self._request_stats)
-        else:
-            size_up, size_dl, av_req_time = 0, 0, 0
+        av_req_time = sum((v[1] - v[0] for _, v in self._request_stats.items())) / len(self._request_stats)
 
         output_compact = "{total_req:>5} reqs in {total_time_m:02.0f}m{total_time_s:02.0f}s  " \
-                         "[{sample_rps:>5.1f} reqs/s {sample_speed_up}B/s (up) {sample_speed_down}B/s (down)] " \
+                         "[{total_rps:>5.1f} reqs/s {total_speed_up}B/s (up) {total_speed_down}B/s (down)] " \
                          "{av_req_time:.2f}s av. per request"
-        output_verbose = "{total_req:>5} reqs in {total_time_m:02.0f}m{total_time_s:02.0f}s  " \
-                         "[Total: {total_rps:>5.1f} reqs/s {total_speed_up}B/s (up) {total_speed_down}B/s (down)]  " \
-                         "[Current: {sample_rps:>5.1f} reqs/s {sample_speed_up}B/s (up) {sample_speed_down}B/s (down)] " \
-                         " [ Av. Size: {av_size_up}B (up) {av_size_down}B (down)]   {av_req_time}"
 
         status = output_compact.format(
-                total_req=self.num_reqs_processed, total_time_m=total_time // 60, total_time_s=total_time % 60,
+                total_req=len(self._request_stats), total_time_m=total_time // 60, total_time_s=total_time % 60,
                 total_rps=total_rps, total_speed_up=sizeof_fmt(total_speed_up),
-                total_speed_down=sizeof_fmt(total_speed_dl),
-                sample_rps=self.sample_rps, sample_speed_up=sizeof_fmt(sample_speed_up),
-                sample_speed_down=sizeof_fmt(sample_speed_dl),
-                av_size_up=sizeof_fmt(size_up), av_size_down=sizeof_fmt(size_dl), av_req_time=av_req_time)
+                total_speed_down=sizeof_fmt(total_speed_dl), av_req_time=av_req_time)
 
         return status
 
     def reset_stats(self):
         self._request_stats = {}
         self._start_time = None
-        self.num_reqs_processed = 0
+        self._total_size_up = 0
+        self._total_size_dl = 0
 
 
 def sizeof_fmt(num):
