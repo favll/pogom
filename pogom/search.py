@@ -29,23 +29,28 @@ def set_cover():
     lat = SearchConfig.ORIGINAL_LATITUDE
     lng = SearchConfig.ORIGINAL_LONGITUDE
 
-    points = []
+    d = math.sqrt(3) * 100
+    points = [[{'lat2': lat, 'lon2': lng, 's': 0}]]
+
     for i in xrange(1, maxint):
         oor_counter = 0
+
+        points.append([])
         for j in range(0, 6 * i):
-            angle = (360.0 / (6 * i)) * j
-            d = math.sqrt(3) * 100 * i * \
-                math.sin(math.radians(60)) / math.sin(math.radians(120.0 - (angle % 60)))
-            if d < SearchConfig.RADIUS:
-                points.append(Geodesic.WGS84.Direct(lat, lng, angle, d))
-            else:
+            p = points[i - 1][(j - j / i - 1 + (j % i == 0))]
+            p_new = Geodesic.WGS84.Direct(p['lat2'], p['lon2'], (j+i-1)/i * 60, d)
+            s = Geodesic.WGS84.Inverse(p_new['lat2'], p_new['lon2'], lat, lng)['s12']
+            p_new['s'] = s
+            points[i].append(p_new)
+
+            if s > SearchConfig.RADIUS:
                 oor_counter += 1
+
         if oor_counter == 6 * i:
             break
 
-    cover = [{"lat": p['lat2'], "lng": p['lon2']} for p in points]
-    cover.append({"lat": lat, "lng": lng})
-
+    cover = [{"lat": p['lat2'], "lng": p['lon2']}
+             for sublist in points for p in sublist if p['s'] < SearchConfig.RADIUS]
     SearchConfig.COVER = cover
 
 
