@@ -54,13 +54,8 @@ class Pogom(Flask):
                                    'lng': SearchConfig.ORIGINAL_LONGITUDE}})
 
     def set_location(self):
-        log.info(request.args)
-        log.info(request.data)
-        log.info(request.values)
         lat = request.values.get('lat', type=float)
         lng = request.values.get('lng', type=float)
-        log.info("{} {}".format(lat, type(lat)))
-        log.info("{} {}".format(lng, type(lng)))
 
         if not (lat and lng):
             abort(400)

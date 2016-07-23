@@ -63,11 +63,7 @@ class PGoApi:
             return False
 
         player_position = self.get_position()
-
-        if self._api_endpoint:
-            api_endpoint = self._api_endpoint
-        else:
-            api_endpoint = self.API_ENTRY
+        api_endpoint = self._api_endpoint or self.API_ENTRY
 
         self.log.info('Execution of RPC')
         try:
@@ -81,6 +77,24 @@ class PGoApi:
         self._req_method_list = []
 
         return response
+
+    def call_async(self, callback):
+        if not self._req_method_list:
+            return False
+
+        if self._rpc.auth_provider is None or not self._rpc.auth_provider.is_login():
+            self.log.info('Not logged in')
+            return False
+
+        player_position = self.get_position()
+        api_endpoint = self._api_endpoint or self.API_ENTRY
+
+        self.log.info('Execution of RPC')
+        self._rpc.request_async(api_endpoint, self._req_method_list, player_position, callback)
+        self._req_method_list = []
+
+    def finish_async(self):
+        self._rpc.finish_async()
 
     def list_curr_methods(self):
         for i in self._req_method_list:

@@ -8,14 +8,14 @@ from threading import Thread
 from pogom import config
 from pogom.app import Pogom
 from pogom.models import create_tables
-from pogom.search import search_loop, set_cover, set_location
+from pogom.search import search_loop, set_cover, set_location, search_loop_async
 from pogom.utils import get_args, insert_mock_data
 
 log = logging.getLogger(__name__)
 
 
 def start_locator_thread(args):
-    search_thread = Thread(target=search_loop, args=(args,))
+    search_thread = Thread(target=search_loop_async, args=(args,))
     search_thread.daemon = True
     search_thread.name = 'search_thread'
     search_thread.start()

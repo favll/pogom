@@ -35,6 +35,10 @@ from utilities import to_camel_case, get_class
 import protos.RpcEnum_pb2 as RpcEnum
 import protos.RpcEnvelope_pb2 as RpcEnvelope
 
+import pycurl
+import certifi
+from parallel_curl import ParallelCurl
+
 log = logging.getLogger(__name__)
 
 RPC_ID = 8145806132888207460
@@ -47,6 +51,10 @@ class RpcApi:
         self._session.verify = True
 
         self.auth_provider = None
+
+        self._curl = ParallelCurl({pycurl.FOLLOWLOCATION: 1, pycurl.MAXREDIRS: 5, pycurl.CONNECTTIMEOUT: 10,
+                                   pycurl.NOSIGNAL: 1, pycurl.DNS_SERVERS: '8.8.8.8', pycurl.USERAGENT: 'Niantic App',
+                                   pycurl.ENCODING: 'gzip,deflate', pycurl.CAINFO: certifi.where()}, 15)
 
     def get_rpc_id(self):
         return 8145806132888207460
@@ -80,9 +88,30 @@ class RpcApi:
         request_proto = self._build_main_request(subrequests, player_position)
         response = self._make_rpc(endpoint, request_proto)
 
-        response_dict = parse_main_request(response, subrequests)
+        response_dict = parse_main_request(response.content, response.status_code, subrequests)
 
         return response_dict
+
+    def request_async(self, endpoint, subrequests, player_position, callback):
+        if not self.auth_provider or self.auth_provider.is_login() is False:
+            raise NotLoggedInException()
+
+        request_proto = self._build_main_request(subrequests, player_position)
+        request_proto_serialized = request_proto.SerializeToString()
+
+        bundle = {'callback': callback, 'subrequests': subrequests}
+
+        self._curl.add_request({pycurl.URL: endpoint, pycurl.POSTFIELDS: request_proto_serialized},
+                   self._success_callback, self._error_callback, bundle=bundle)
+
+    def _success_callback(self, handle, options, bundle, header_buf, data_buf):
+        response_data = data_buf.getvalue()
+        response_dict = parse_main_request(response_data, 200, bundle['subrequests'])
+        bundle['callback'](response_dict)
+
+    def _error_callback(self, handle, options, bundle, header_buf, data_buf):
+        log.warning("error")
+        bundle['callback'](False)
 
     def _build_main_request(self, subrequests, player_position=None):
         log.debug('Generating main RPC request...')
@@ -110,6 +139,9 @@ class RpcApi:
         log.debug('Generated protobuf request: \n\r%s', request)
 
         return request
+
+    def finish_async(self):
+        self._curl.finish_requests()
 
 
 def build_sub_requests(mainrequest, subrequest_list):
@@ -151,23 +183,23 @@ def build_sub_requests(mainrequest, subrequest_list):
     return mainrequest
 
 
-def parse_main_request(response_raw, subrequests):
+def parse_main_request(response_content, response_status, subrequests):
     log.debug('Parsing main RPC response...')
 
-    if response_raw.status_code != 200:
-        log.warning('Unexpected HTTP server response - needs 200 got %s', response_raw.status_code)
-        log.debug('HTTP output: \n%s', response_raw.content)
+    if response_status != 200:
+        log.warning('Unexpected HTTP server response - needs 200 got %s', response_status)
+        log.debug('HTTP output: \n%s', response_content)
         return False
 
-    if response_raw.content is None:
+    if response_content is None:
         log.warning('Empty server response!')
         return False
 
     response_proto = RpcEnvelope.Response()
     try:
-        response_proto.ParseFromString(response_raw.content)
-    except google.protobuf.message.DecodeError as e:
-        log.warning('Could not parse response: %s', str(e))
+        response_proto.ParseFromString(response_content)
+    except:
+        log.exception('Could not parse response: ')
         return False
 
     log.debug('Protobuf structure of rpc response:\n\r%s', response_proto)

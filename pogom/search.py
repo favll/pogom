@@ -5,6 +5,8 @@ import logging
 import math
 import time
 from sys import maxint
+import json
+import collections
 
 from geographiclib.geodesic import Geodesic
 
@@ -17,6 +19,10 @@ log = logging.getLogger(__name__)
 TIMESTAMP = '\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000'
 REQ_SLEEP = 1
 api = PGoApi()
+queue = collections.deque()
+
+scan_start_time = 0
+min_time_per_scan = 3 * 60
 
 
 def set_cover():
@@ -103,7 +109,6 @@ def login_if_necessary(args, position):
 
 def search(args):
     num_steps = len(SearchConfig.COVER)
-    position = (SearchConfig.ORIGINAL_LATITUDE, SearchConfig.ORIGINAL_LONGITUDE, 0)
 
     i = 1
     for step_location in generate_location_steps():
@@ -131,6 +136,72 @@ def search(args):
             break
 
         i += 1
+
+
+def search_async(args):
+    global scan_start_time
+    scan_start_time = time.time()
+    num_steps = len(SearchConfig.COVER)
+
+    login_if_necessary(args, (SearchConfig.ORIGINAL_LATITUDE, SearchConfig.ORIGINAL_LONGITUDE, 0))
+    log.info("Starting scan of {} locations".format(num_steps))
+
+    i = 1
+    while len(queue) > 0:
+        c = queue.pop()
+        step_location = (c["lat"], c["lng"], 0)
+        log.debug('Scanning step {:d} of {:d}.'.format(i, num_steps))
+        log.debug('Scan location is {:f}, {:f}'.format(step_location[0], step_location[1]))
+
+        login_if_necessary(args, step_location)
+
+        api.set_position(*step_location)
+        api.get_map_objects(latitude=f2i(step_location[0]),
+                            longitude=f2i(step_location[1]),
+                            since_timestamp_ms=TIMESTAMP,
+                            cell_id=get_cellid(step_location[0], step_location[1]))
+        api.call_async(callback)
+
+        if SearchConfig.CHANGE:
+            SearchConfig.CHANGE = False
+            queue.clear()
+            queue.extend(SearchConfig.COVER)
+
+        i += 1
+
+    api.finish_async()
+    log.info(api._rpc._curl.stats())
+    api._rpc._curl.reset_stats()
+
+
+def callback(response_dict):
+    if not response_dict:
+        log.info('Map Download failed. Trying again.')
+        # TODO
+
+    try:
+        parse_map(response_dict)
+        log.debug("Parsed & saved.")
+    except KeyError:
+        log.exception('Failed to parse response: {}'.format(response_dict))
+    except:  # make sure we dont crash in the main loop
+        log.exception('Unexpected error')
+
+
+def throttle():
+    if scan_start_time == 0:
+        return
+
+    sleep_time = min_time_per_scan - (time.time() - scan_start_time)
+    log.info("Scan finished. Sleeping {:.2f} seconds before continuing.".format(sleep_time))
+    time.sleep(sleep_time)
+
+
+def search_loop_async(args):
+    while True:
+        throttle()
+        queue.extend(SearchConfig.COVER)
+        search_async(args)
 
 
 def search_loop(args):

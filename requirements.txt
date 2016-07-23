@@ -14,3 +14,5 @@ s2sphere==0.2.4
 gpsoauth==0.3.0
 protobuf-to-dict==0.1.0
 geographiclib==1.46.3
+pycurl==7.43.0
+certifi==2016.2.28
