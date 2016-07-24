@@ -82,7 +82,8 @@ function initMap() {
             map: map
         });
         newLocationMarker.infoWindow = new google.maps.InfoWindow({
-            content: "<button id=\"new-loc-btn\">Set new Location</button>"
+            content: "<button id=\"new-loc-btn\">Set new Location</button>",
+            disableAutoPan: true
         });
         newLocationMarker.infoWindow.open(map, newLocationMarker);
         google.maps.event.addListener(newLocationMarker.infoWindow,'closeclick',function(){
@@ -152,7 +153,8 @@ function setupPokemonMarker(item) {
     });
     
     marker.infoWindow = new google.maps.InfoWindow({
-        content: pokemonLabel(item.pokemon_name, item.disappear_time, item.pokemon_id, item.disappear_time, item.latitude, item.longitude)
+        content: pokemonLabel(item.pokemon_name, item.disappear_time, item.pokemon_id, item.disappear_time, item.latitude, item.longitude),
+        disableAutoPan: true
     });
     
     addListeners(marker);
@@ -167,7 +169,8 @@ function setupGymMarker(item) {
     });
     
     marker.infoWindow = new google.maps.InfoWindow({
-        content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points)
+        content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points),
+        disableAutoPan: true
     });
     
     addListeners(marker);
@@ -279,8 +282,9 @@ function updateMap() {
                     map_gyms[item.gym_id].marker = setupGymMarker(item);
                 } else { // if it hasn't changed generate new label only (in case prestige has changed)
                     map_gyms[item.gym_id].marker.infoWindow = new google.maps.InfoWindow({
-                        content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points)
-                    });
+                        content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points),
+                        disableAutoPan: true
+                });
                     
                 }
             }
