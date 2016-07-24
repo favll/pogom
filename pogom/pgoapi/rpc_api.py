@@ -76,7 +76,7 @@ class RpcApi:
         request_proto_serialized = request_proto_plain.SerializeToString()
         try:
             http_response = self._session.post(endpoint, data=request_proto_serialized, timeout=10)
-        except requests.exceptions.ConnectionError as e:
+        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             raise ServerBusyOrOfflineException
 
         return http_response
@@ -110,7 +110,7 @@ class RpcApi:
         bundle['callback'](response_dict)
 
     def _error_callback(self, handle, options, bundle, header_buf, data_buf):
-        log.warning("error")
+        log.warning("Error downloading map: {}".format(handle.getinfo(pycurl.RESPONSE_CODE)))
         bundle['callback'](False)
 
     def _build_main_request(self, subrequests, player_position=None):

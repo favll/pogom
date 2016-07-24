@@ -45,7 +45,7 @@ class ParallelCurl:
         self._total_size_up = 0
         self._total_size_dl = 0
         self._num_connections = num_connections
-        self._queue_max_length = self._num_connections * 2
+        self._queue_max_length = self._num_connections
         self.sample_rps = 0
 
         if default_options is None:

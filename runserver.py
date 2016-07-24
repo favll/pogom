@@ -30,7 +30,7 @@ if __name__ == '__main__':
         logging.getLogger("peewee").setLevel(logging.INFO)
         logging.getLogger("requests").setLevel(logging.WARNING)
         logging.getLogger("pogom.pgoapi.pgoapi").setLevel(logging.WARNING)
-        logging.getLogger("pogom.pgoapi.rpc_api").setLevel(logging.CRITICAL)
+        logging.getLogger("pogom.pgoapi.rpc_api").setLevel(logging.WARNING)
         logging.getLogger("pogom.models").setLevel(logging.WARNING)
         logging.getLogger("werkzeug").setLevel(logging.WARNING)
     elif args.debug == "info":
