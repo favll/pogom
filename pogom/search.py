@@ -196,7 +196,7 @@ def error_throttle():
 
 def callback(response_dict):
     global consecutive_map_fails
-    if not response_dict:
+    if not response_dict or ('responses' in response_dict and not response_dict['responses']):
         log.info('Map Download failed. Trying again.')
         consecutive_map_fails += 1
 
