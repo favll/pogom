@@ -9,7 +9,7 @@ from pogom import config
 from pogom.app import Pogom
 from pogom.models import create_tables
 from pogom.search import search_loop, set_cover, set_location, search_loop_async
-from pogom.utils import get_args, insert_mock_data
+from pogom.utils import get_args
 
 log = logging.getLogger(__name__)
 

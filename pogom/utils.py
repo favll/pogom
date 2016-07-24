@@ -30,7 +30,7 @@ def get_args():
     parser.add_argument('-P', '--port', type=int, help='Set web server listening port', default=5000)
 
     parser.add_argument('-d', '--debug', type=str.lower, help='Debug Level [info|debug]', default=None)
-    parser.add_argument('-c', '--pycurl', help='Use pycurl downloader (unstable)')
+    parser.add_argument('-c', '--pycurl', help='Use pycurl downloader (unstable)', action='store_true')
 
     args = parser.parse_args()
     if args.password is None:
