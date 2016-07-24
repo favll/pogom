@@ -62,7 +62,8 @@ function initMap() {
         center: {lat: center_lat, lng: center_lng},
         zoom: 13,
         mapTypeControl: false,
-        streetViewControl: false
+        streetViewControl: false,
+        disableAutoPan: true
     });
 
     currentLocationMarker = new google.maps.Marker({
