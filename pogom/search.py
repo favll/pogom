@@ -196,9 +196,10 @@ def error_throttle():
 
 def callback(response_dict):
     global consecutive_map_fails
-    if not response_dict or ('responses' in response_dict and not response_dict['responses']):
+    if (not response_dict) or ('responses' in response_dict and not response_dict['responses']):
         log.info('Map Download failed. Trying again.')
         consecutive_map_fails += 1
+        return
 
     try:
         parse_map(response_dict)
@@ -209,7 +210,7 @@ def callback(response_dict):
         log.exception('Failed to parse response: {}'.format(response_dict))
         consecutive_map_fails += 1
     except:  # make sure we dont crash in the main loop
-        log.exception('Unexpected error when parsing response: {]'.format(response_dict))
+        log.exception('Unexpected error when parsing response: {}'.format(response_dict))
         consecutive_map_fails += 1
 
 

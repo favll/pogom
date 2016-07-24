@@ -3,7 +3,7 @@
 
 import logging
 from peewee import Model, SqliteDatabase, InsertQuery, IntegerField, \
-    CharField, FloatField, BooleanField, DateTimeField
+    CharField, FloatField, BooleanField, DateTimeField, fn, SQL
 from datetime import datetime
 from base64 import b64encode
 
@@ -62,6 +62,18 @@ class Pokemon(BaseModel):
             pokemons.append(p)
 
         return pokemons
+
+    @classmethod
+    def get_stats(cls):
+        query = (Pokemon
+                 .select(Pokemon.pokemon_id, fn.COUNT(Pokemon.pokemon_id).alias('count'))
+                 .group_by(Pokemon.pokemon_id)
+                 .order_by(-SQL('count'))
+                 .dicts())
+
+        for p in query:
+            p['pokemon_name'] = get_pokemon_name(p['pokemon_id'])
+        return query
 
 
 class Pokestop(BaseModel):

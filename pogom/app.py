@@ -23,6 +23,7 @@ class Pogom(Flask):
         self.route('/map-data', methods=['GET'])(self.map_data)
         self.route('/cover', methods=['GET'])(self.cover)
         self.route('/set-location', methods=['POST'])(self.set_location)
+        self.route('/stats', methods=['GET'])(self.stats)
 
     def fullmap(self):
         return render_template('map.html',
@@ -78,6 +79,11 @@ class Pogom(Flask):
         set_cover()
 
         return ('', 204)
+
+    def stats(self):
+        stats = Pokemon.get_stats()
+        count = sum(p['count'] for p in stats)
+        return render_template('stats.html', pokemons=Pokemon.get_stats(), total=count)
 
 
 class CustomJSONEncoder(JSONEncoder):
