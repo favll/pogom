@@ -145,8 +145,6 @@ def search(args):
 
 
 def search_async(args):
-    global scan_start_time
-    scan_start_time = time.time()
     num_steps = len(SearchConfig.COVER)
 
     login_if_necessary(args, (SearchConfig.ORIGINAL_LATITUDE, SearchConfig.ORIGINAL_LONGITUDE, 0))
@@ -225,14 +223,20 @@ def throttle():
 
 
 def search_loop_async(args):
+    global scan_start_time
     while True:
         throttle()
+
+        scan_start_time = time.time()
         queue.extend(SearchConfig.COVER[::-1])
         search_async(args)
         SearchConfig.COMPLETE_SCAN_TIME = time.time() - scan_start_time
 
 
 def search_loop(args):
+    global scan_start_time
     while True:
+        scan_start_time = time.time()
         search(args)
         log.info("Finished scan")
+        SearchConfig.COMPLETE_SCAN_TIME = time.time() - scan_start_time
