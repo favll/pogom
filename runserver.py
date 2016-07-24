@@ -15,7 +15,11 @@ log = logging.getLogger(__name__)
 
 
 def start_locator_thread(args):
-    search_thread = Thread(target=search_loop_async, args=(args,))
+    if args.pycurl:
+        search_thread = Thread(target=search_loop_async, args=(args,))
+    else:
+        search_thread = Thread(target=search_loop, args=(args,))
+
     search_thread.daemon = True
     search_thread.name = 'search_thread'
     search_thread.start()
@@ -48,10 +52,7 @@ if __name__ == '__main__':
     set_location(args.location, args.radius)
     set_cover()
 
-    if not args.mock:
-        start_locator_thread(args)
-    else:
-        insert_mock_data(config, 6)
+    start_locator_thread(args)
 
     app = Pogom(__name__)
     config['ROOT_PATH'] = app.root_path

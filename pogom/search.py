@@ -173,6 +173,9 @@ def search_async(args):
             queue.clear()
             queue.extend(SearchConfig.COVER)
 
+        if (i%20 == 0):
+            log.info(api._rpc._curl.stats())
+
         i += 1
 
     api.finish_async()
