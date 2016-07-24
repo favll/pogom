@@ -140,8 +140,8 @@ class RpcApi:
 
         return request
 
-    def finish_async(self):
-        self._curl.finish_requests()
+    def finish_async(self, max_time=None):
+        self._curl.finish_requests(max_time)
 
 
 def build_sub_requests(mainrequest, subrequest_list):

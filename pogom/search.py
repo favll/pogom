@@ -20,6 +20,7 @@ TIMESTAMP = '\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\00
 REQ_SLEEP = 1
 api = PGoApi()
 queue = collections.deque()
+consecutive_map_fails = 0
 
 scan_start_time = 0
 min_time_per_scan = 3 * 60
@@ -159,6 +160,7 @@ def search_async(args):
         log.debug('Scan location is {:f}, {:f}'.format(step_location[0], step_location[1]))
 
         login_if_necessary(args, step_location)
+        error_throttle()
 
         api.set_position(*step_location)
         api.get_map_objects(latitude=f2i(step_location[0]),
@@ -168,6 +170,7 @@ def search_async(args):
         api.call_async(callback)
 
         if SearchConfig.CHANGE:
+            log.info("Changing scan location")
             SearchConfig.CHANGE = False
             queue.clear()
             queue.extend(SearchConfig.COVER)
@@ -179,19 +182,35 @@ def search_async(args):
     api._rpc._curl.reset_stats()
 
 
+def error_throttle():
+    if consecutive_map_fails == 0:
+        return
+
+    sleep_t = min(math.exp(1.0 * consecutive_map_fails / 5) - 1, 2*60)
+    log.info('Loading map failed, waiting {:.5f} seconds'.format(sleep_t))
+
+    start_sleep = time.time()
+    api.finish_async(sleep_t)
+    time.sleep(max(start_sleep + sleep_t - time.time(), 0))
+
+
 def callback(response_dict):
+    global consecutive_map_fails
     if not response_dict:
         log.info('Map Download failed. Trying again.')
-        # TODO
+        consecutive_map_fails += 1
 
     try:
         parse_map(response_dict)
         SearchConfig.LAST_SUCCESSFUL_REQUEST = time.time()
+        consecutive_map_fails = 0
         log.debug("Parsed & saved.")
     except KeyError:
         log.exception('Failed to parse response: {}'.format(response_dict))
+        consecutive_map_fails += 1
     except:  # make sure we dont crash in the main loop
-        log.exception('Unexpected error')
+        log.exception('Unexpected error when parsing response: {]'.format(response_dict))
+        consecutive_map_fails += 1
 
 
 def throttle():

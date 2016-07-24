@@ -129,10 +129,17 @@ class ParallelCurl:
         self._queue.append({'success_callback': success_callback, 'error_callback': error_callback,
                             'options': options, 'bundle': bundle})
 
-    def finish_requests(self):
+    def finish_requests(self, max_time=None):
         """ Call this function to process all outstanding requests. Must be called before your script terminates. """
-        while self.num_reqs > self.num_reqs_processed:
-            self._download_loop()
+        if max_time:
+            t = time.time()
+            while self.num_reqs > self.num_reqs_processed and (time.time() - t) < max_time:
+                self._download_loop()
+        else:
+            while self.num_reqs > self.num_reqs_processed:
+                self._download_loop()
+
+
 
     def close(self):
         """ Closes all sockets """

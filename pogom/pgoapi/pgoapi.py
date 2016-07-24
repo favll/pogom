@@ -93,8 +93,8 @@ class PGoApi:
         self._rpc.request_async(api_endpoint, self._req_method_list, player_position, callback)
         self._req_method_list = []
 
-    def finish_async(self):
-        self._rpc.finish_async()
+    def finish_async(self, max_time=None):
+        self._rpc.finish_async(max_time)
 
     def list_curr_methods(self):
         for i in self._req_method_list:
