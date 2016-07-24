@@ -159,7 +159,7 @@ class ParallelCurl:
             self.m.add_handle(curl)
 
             if not self._start_time:
-                self._start_time = time.clock()
+                self._start_time = time.time()
 
         while 1:
             if self.m.perform()[0] != pycurl.E_CALL_MULTI_PERFORM:
@@ -230,7 +230,7 @@ class ParallelCurl:
 
         total_req_time = handle.getinfo(pycurl.TOTAL_TIME)
 
-        now = time.clock()
+        now = time.time()
         request_start_time = now - total_req_time
         self._request_stats[now] = (request_start_time, now, size_up, size_dl)
 
@@ -238,7 +238,7 @@ class ParallelCurl:
         if not self._start_time:
             return
 
-        now = time.clock()
+        now = time.time()
         total_time = now - self._start_time
 
         total_rps = len(self._request_stats) / total_time
