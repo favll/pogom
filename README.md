@@ -9,9 +9,9 @@ Heavily using [pgoapi](https://github.com/tejado/pgoapi).
 
 ```
 pip install -r requirements.txt
-python runserver.py -u USERNAME -p PASSWORD -l LOCATION -r SEARCHRADIUS
+python runserver.py -u USERNAME -p PASSWORD -l LOCATION -r SEARCHRADIUS -c
 ```
-The `-c` switches to pycurl (python wrapper around the libcurl library) as downloader. This is so performant that the parsing and DB stuff becomes the bottleneck. 
+The `-c` flag switches to pycurl (python wrapper around the libcurl library) as downloader. This is so performant that the parsing and DB stuff becomes the bottleneck. 
 
 ##Features
 - [x] Extremely fast (scans a 5km search radius in 1m30s with the -c flag)
