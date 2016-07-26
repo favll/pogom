@@ -1,4 +1,25 @@
 # pogom
-Rewrite of https://github.com/AHAAAAAAA/PokemonGo-Map heavily using https://github.com/tejado/pgoapi and building on a proper app structure. 
+The no-bloat version of https://github.com/AHAAAAAAA/PokemonGo-Map (their rewrite is actually an early-stage fork of this project).
 
-Credit goes to all contributors of the original.
+Heavily using https://github.com/tejado/pgoapi. 
+
+##Usage (the usual):
+
+```
+pip install -r requirements.txt
+python runserver.py -u USERNAME -p PASSWORD -l LOCATION -r SEARCHRADIUS
+```
+The `-c` switches to pycurl (python wrapper around the libcurl library) as downloader. This is so performant that the parsing and DB stuff becomes the bottleneck. 
+
+##Features
+- [x] Extremely fast (scans a 5km search radius in 1m30s with the -c flag)
+- [x] Perfect coverage (using a perfect hexagonal grid of radius 100m)
+- [x] No Bloat (we tried to keep this as lightweight as possible, therefore you won't see as many flags in the help file)
+- [x] Hide common Pokemon
+- [x] Server status in the Web-GUI
+- [ ] Show/Hide Pokestops
+- [ ] Notifications
+
+##TODO
+ - Move processing of responses (protobuf parsing & save to DB) to seperate process
+ - Web-GUI for all configuration settings
