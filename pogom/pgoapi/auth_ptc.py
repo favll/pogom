@@ -52,7 +52,7 @@ class AuthPtc(Auth):
         head = {'User-Agent': 'niantic'}
         try:
             r = self._session.get(self.PTC_LOGIN_URL, headers=head, timeout=10)
-        except requests.exceptions.ReadTimeout:
+        except requests.exceptions.Timeout:
             self.log.error('Server timed out')
             return False
         
@@ -71,7 +71,7 @@ class AuthPtc(Auth):
         }
         try:
             r1 = self._session.post(self.PTC_LOGIN_URL, data=data, headers=head, timeout=10)
-        except requests.exceptions.ReadTimeout:
+        except requests.exceptions.Timeout:
             self.log.error('Server timed out')
             return False
 
@@ -95,7 +95,7 @@ class AuthPtc(Auth):
         
         try:
             r2 = self._session.post(self.PTC_LOGIN_OAUTH, data=data1, timeout=10)
-        except requests.exceptions.ReadTimeout:
+        except requests.exceptions.Timeout:
             self.log.error('Server timed out')
             return False
 
