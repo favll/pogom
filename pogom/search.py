@@ -229,6 +229,7 @@ def search_loop_async(args):
         throttle()
 
         scan_start_time = time.time()
+        search_async(args)
         queue.extend(SearchConfig.COVER[::-1])
         SearchConfig.COMPLETE_SCAN_TIME = time.time() - scan_start_time
 
