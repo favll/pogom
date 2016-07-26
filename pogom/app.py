@@ -73,9 +73,9 @@ class Pogom(Flask):
         if not (lat and lng):
             abort(400)
 
-        set_cover()
         SearchConfig.ORIGINAL_LATITUDE = lat
         SearchConfig.ORIGINAL_LONGITUDE = lng
+        set_cover()
         SearchConfig.CHANGE = True
 
         return ('', 204)
