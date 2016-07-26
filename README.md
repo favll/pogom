@@ -3,7 +3,7 @@ The no-bloat version of [PokemonGo-Map](https://github.com/AHAAAAAAA/PokemonGo-M
 
 Heavily using [pgoapi](https://github.com/tejado/pgoapi). 
 
-![image](https://cloud.githubusercontent.com/assets/1723176/17143565/f6838c9c-5353-11e6-8e4e-fa0383697f38.png)
+![image](https://cloud.githubusercontent.com/assets/1723176/17143769/c5db3a80-5354-11e6-85d9-ba664e293cfc.png)
 
 ##Usage (the usual):
 
