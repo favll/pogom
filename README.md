@@ -14,6 +14,11 @@ python runserver.py -u USERNAME -p PASSWORD -l LOCATION -r SEARCHRADIUS -c
 ```
 The `-c` flag switches to pycurl (python wrapper around the libcurl library) as downloader. This is so performant that the parsing and DB stuff becomes the bottleneck. 
 
+On linux you possibly also have to install libcurl:
+```
+sudo apt-get install libcurl4-openssl-dev
+```
+
 ##Features
 - [x] Extremely fast (scans a 5km search radius in 1m30s with the -c flag)
 - [x] Perfect coverage (using a perfect hexagonal grid of radius 100m)
