@@ -7,6 +7,7 @@ Heavily using [pgoapi](https://github.com/tejado/pgoapi).
 
 ##Usage (the usual):
 
+Edit `pogom/__init__.py` and enter your GMaps Key.
 ```
 pip install -r requirements.txt
 python runserver.py -u USERNAME -p PASSWORD -l LOCATION -r SEARCHRADIUS -c
