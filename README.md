@@ -25,4 +25,5 @@ The `-c` flag switches to pycurl (python wrapper around the libcurl library) as 
 
 ##TODO
  - Move processing of responses (protobuf parsing & save to DB) to seperate process
+ - Use different (faster) library for protobuf parsing
  - Web-GUI for all configuration settings
