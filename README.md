@@ -22,6 +22,7 @@ The `-c` flag switches to pycurl (python wrapper around the libcurl library) as 
 - [x] Server status in the Web-GUI
 - [x] Stats about seen Pokemon
 - [x] Proper handling of server downtime (using exponential backoff strategy)
+- [x] Mobile friendly
 - [ ] Show/Hide Pokestops
 - [ ] Notifications
 
