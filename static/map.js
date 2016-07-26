@@ -188,16 +188,20 @@ function addListeners(marker){
         marker.persist = null;
     });
 
-    marker.addListener('mouseover', function() {
-        marker.infoWindow.open(map, marker);
-        updateLabelDiffTime();
-    });
-    
-    marker.addListener('mouseout', function() {
-        if (!marker.persist) {
-            marker.infoWindow.close();
-        }
-    });
+    var isMobile = (/iphone|ipod|android|ie|blackberry|fennec/).test(navigator.userAgent.toLowerCase());
+
+    if (!isMobile){
+        marker.addListener('mouseover', function() {
+            marker.infoWindow.open(map, marker);
+            updateLabelDiffTime();
+        });
+
+        marker.addListener('mouseout', function() {
+            if (!marker.persist) {
+                marker.infoWindow.close();
+            }
+        });
+    }
     return marker
 }
 
