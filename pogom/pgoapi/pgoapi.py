@@ -170,12 +170,12 @@ class PGoApi:
         if 'api_url' in response:
             self._api_endpoint = ('https://{}/rpc'.format(response['api_url']))
             self.log.debug('Setting API endpoint to: %s', self._api_endpoint)
+
+        elif 'auth_ticket' in response:
+            self._rpc.auth_provider.set_ticket(response['auth_ticket'].values())
         else:
             self.log.error('Login failed - unexpected server response!')
             return False
-
-        if 'auth_ticket' in response:
-            self._rpc.auth_provider.set_ticket(response['auth_ticket'].values())
 
         self.log.info('Finished RPC login sequence (app simulation)')
         self.log.info('Login process completed')

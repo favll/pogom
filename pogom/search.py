@@ -5,9 +5,8 @@ import logging
 import math
 import time
 from sys import maxint
-import json
 import collections
-
+import cProfile
 from geographiclib.geodesic import Geodesic
 
 from pgoapi import PGoApi
@@ -40,11 +39,10 @@ def set_cover():
         for j in range(0, 6 * i):
             p = points[i - 1][(j - j / i - 1 + (j % i == 0))]
             p_new = Geodesic.WGS84.Direct(p['lat2'], p['lon2'], (j+i-1)/i * 60, d)
-            s = Geodesic.WGS84.Inverse(p_new['lat2'], p_new['lon2'], lat, lng)['s12']
-            p_new['s'] = s
+            p_new['s'] = Geodesic.WGS84.Inverse(p_new['lat2'], p_new['lon2'], lat, lng)['s12']
             points[i].append(p_new)
 
-            if s > SearchConfig.RADIUS:
+            if p_new['s'] > SearchConfig.RADIUS:
                 oor_counter += 1
 
         if oor_counter == 6 * i:
@@ -103,6 +101,7 @@ def login(args, position):
 
 
 def login_if_necessary(args, position):
+    global api
     if api._rpc.auth_provider and api._rpc.auth_provider._ticket_expire:
         remaining_time = api._rpc.auth_provider._ticket_expire / 1000 - time.time()
 
@@ -147,7 +146,6 @@ def search(args):
 def search_async(args):
     num_steps = len(SearchConfig.COVER)
 
-    login_if_necessary(args, (SearchConfig.ORIGINAL_LATITUDE, SearchConfig.ORIGINAL_LONGITUDE, 0))
     log.info("Starting scan of {} locations".format(num_steps))
 
     i = 1
@@ -232,7 +230,6 @@ def search_loop_async(args):
 
         scan_start_time = time.time()
         queue.extend(SearchConfig.COVER[::-1])
-        search_async(args)
         SearchConfig.COMPLETE_SCAN_TIME = time.time() - scan_start_time
 
 
