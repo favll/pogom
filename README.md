@@ -3,8 +3,7 @@ The no-bloat version of [PokemonGo-Map](https://github.com/AHAAAAAAA/PokemonGo-M
 
 Heavily using [pgoapi](https://github.com/tejado/pgoapi). 
 
-![image](https://cloud.githubusercontent.com/assets/1723176/17143500/c06fdb42-5353-11e6-8ccc-f249928bf07c.png)
-
+![image](https://cloud.githubusercontent.com/assets/1723176/17143565/f6838c9c-5353-11e6-8e4e-fa0383697f38.png)
 
 ##Usage (the usual):
 
@@ -20,6 +19,7 @@ The `-c` switches to pycurl (python wrapper around the libcurl library) as downl
 - [x] No Bloat (we tried to keep this as lightweight as possible, therefore you won't see as many flags in the help file)
 - [x] Hide common Pokemon
 - [x] Server status in the Web-GUI
+- [x] Stats about seen Pokemon
 - [ ] Show/Hide Pokestops
 - [ ] Notifications
 
