@@ -1,7 +1,7 @@
-# pogom
-The no-bloat version of https://github.com/AHAAAAAAA/PokemonGo-Map (their rewrite is actually an early-stage fork of this project).
+# PoGoMap
+The no-bloat version of [PokemonGo-Map](https://github.com/AHAAAAAAA/PokemonGo-Map) (their rewrite is actually an early-stage fork of this project).
 
-Heavily using https://github.com/tejado/pgoapi. 
+Heavily using [pgoapi](https://github.com/tejado/pgoapi). 
 
 ##Usage (the usual):
 
