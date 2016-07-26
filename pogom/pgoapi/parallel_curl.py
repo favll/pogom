@@ -235,7 +235,7 @@ class ParallelCurl:
         self._request_stats[now] = (request_start_time, now, size_up, size_dl)
 
     def stats(self):
-        if not self._start_time:
+        if not self._start_time or not self._request_stats:
             return
 
         now = time.time()
