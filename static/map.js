@@ -1,5 +1,4 @@
 "use strict"
-let pad = number => number <= 99 ? ("0"+number).slice(-2) : number;
 
 var $loginStatus = $(".login-status");
 var $lastRequestLabel = $(".last-request");
@@ -27,6 +26,12 @@ function getFromStorage(keyName, default_value) {
     } else {
         return default_value;
     }
+}
+
+function pad(num, size) {
+    var s = num+"";
+    if (s.length < 2) s = "0" + s;
+    return s;
 }
 
 document.getElementById('pokemon-checkbox').checked = getFromStorage("displayPokemons", "true");
@@ -108,21 +113,20 @@ function initMap() {
 function pokemonLabel(name, id, disappear_time, latitude, longitude) {
     var disappear_date = new Date(disappear_time);
 
-    var label = `
-        <div>
-            <b>${name}</b>
-            <span> - </span>
-            <small>
-                <a href='http://www.pokemon.com/us/pokedex/${id}' target='_blank' title='View in Pokedex'>#${id}</a>
-            </small>
-        </div>
-        <div>
-            Disappears at ${pad(disappear_date.getHours())}:${pad(disappear_date.getMinutes())}:${pad(disappear_date.getSeconds())}
-            <span class='label-countdown' disappears-at='${disappear_time}'>(00m00s)</span></div>
-        <div>
-            <a href='https://www.google.com/maps/dir/Current+Location/${latitude},${longitude}'
-                    target='_blank' title='View in Maps'>Get Directions</a>
-        </div>`;
+    var label = "<div>\
+            <b>" +name+ "</b>\
+            <span> - </span>\
+            <small>\
+                <a href='http://www.pokemon.com/us/pokedex/" +id+ "' target='_blank' title='View in Pokedex'>#"+id+"</a>\
+            </small>\
+        </div>\
+        <div>\
+            Disappears at " +pad(disappear_date.getHours())+ ":"+pad(disappear_date.getMinutes())+":"+pad(disappear_date.getSeconds())+"\
+            <span class='label-countdown' disappears-at='"+disappear_time+"'>(00m00s)</span></div>\
+        <div>\
+            <a href='https://www.google.com/maps/dir/Current+Location/"+latitude+","+longitude+"'\
+                    target='_blank' title='View in Maps'>Get Directions</a>\
+        </div>";
     return label;
 };
 
@@ -130,21 +134,20 @@ function gymLabel(team_name, team_id, gym_points) {
     var gym_color = [ "0, 0, 0, .4", "74, 138, 202, .6", "240, 68, 58, .6", "254, 217, 40, .6" ];
     var str;
     if (team_name == 0) {
-        str = `<div><center>
-            <div>
-                <b style='color:rgba(${gym_color[team_id]})'>${team_name}</b><br>
-            </div>
-            </center></div>`;
+        str = "<div><center>\
+            <div>\
+                <b style='color:rgba(" + gym_color[team_id] + ")'>" + team_name + "</b><br>\
+            </div>\
+            </center></div>";
     } else {
-        str = `
-            <div><center>
-            <div style='padding-bottom: 2px'>Gym owned by:</div>
-            <div>
-                <b style='color:rgba(${gym_color[team_id]})'>Team ${team_name}</b><br>
-                <img height='70px' style='padding: 5px;' src='static/forts/${team_name}_large.png'> 
-            </div>
-            <div>Prestige: ${gym_points}</div>
-            </center></div>`;
+        str = "<div><center>\
+            <div style='padding-bottom: 2px'>Gym owned by:</div>\
+            <div>\
+                <b style='color:rgba("+ gym_color[team_id] + ")'>Team " + team_name + "</b><br>\
+                <img height='70px' style='padding: 5px;' src='static/forts/" + team_name + "_large.png'> \
+            </div>\
+            <div>Prestige: " + gym_points + "</div>\
+            </center></div>";
     }
 
     return str;
@@ -389,7 +392,7 @@ function statusLabels(status) {
 
     var difference = status['last-successful-request'];
 
-    if (difference == 'none') {
+    if (difference == 'na') {
 
     } else if (difference == 'sleep') {
         $lastRequestLabel.removeClass('label-danger label-warning');
