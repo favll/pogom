@@ -52,14 +52,14 @@ class RpcApi:
 
         self.auth_provider = None
 
-        try:
+        if hasattr(pycurl, 'DNS_SERVERS'):
             self._curl = ParallelCurl({pycurl.FOLLOWLOCATION: 1, pycurl.MAXREDIRS: 5, pycurl.DNS_SERVERS: "8.8.8.8",
-                                       pycurl.NOSIGNAL: 1, pycurl.USERAGENT: 'Niantic App', pycurl.CONNECTTIMEOUT: 10000,
-                                       pycurl.CAINFO: certifi.where()}, 8)
-        except:
+                                       pycurl.NOSIGNAL: 1, pycurl.USERAGENT: 'Niantic App',
+                                       pycurl.CONNECTTIMEOUT: 10000, pycurl.CAINFO: certifi.where()}, 8)
+        else:
             self._curl = ParallelCurl({pycurl.FOLLOWLOCATION: 1, pycurl.MAXREDIRS: 5,
-                                       pycurl.NOSIGNAL: 1, pycurl.USERAGENT: 'Niantic App', pycurl.CONNECTTIMEOUT: 10000,
-                                       pycurl.CAINFO: certifi.where()}, 8)
+                                       pycurl.NOSIGNAL: 1, pycurl.USERAGENT: 'Niantic App',
+                                       pycurl.CONNECTTIMEOUT: 10000, pycurl.CAINFO: certifi.where()}, 8)
 
     def get_rpc_id(self):
         return 8145806132888207460
@@ -107,7 +107,7 @@ class RpcApi:
         bundle = {'callback': callback, 'subrequests': subrequests}
 
         self._curl.add_request({pycurl.URL: endpoint, pycurl.POSTFIELDS: request_proto_serialized},
-                   self._success_callback, self._error_callback, bundle=bundle)
+                               self._success_callback, self._error_callback, bundle=bundle)
 
     def _success_callback(self, handle, options, bundle, header_buf, data_buf):
         response_data = data_buf.getvalue()
