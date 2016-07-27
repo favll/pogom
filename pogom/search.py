@@ -219,7 +219,12 @@ def throttle():
     sleep_time = max(min_time_per_scan - (time.time() - scan_start_time), 0)
     log.info("Scan finished. Sleeping {:.2f} seconds before continuing.".format(sleep_time))
     SearchConfig.LAST_SUCCESSFUL_REQUEST = -1
-    time.sleep(sleep_time)
+    while sleep_time > 0:
+        if SearchConfig.CHANGE:
+            break
+        time.sleep(1)
+        sleep_time -= 1
+
 
 
 def search_loop_async(args):
