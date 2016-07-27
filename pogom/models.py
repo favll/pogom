@@ -177,17 +177,18 @@ def parse_map(map_dict):
                             f['last_modified_timestamp_ms'] / 1000.0),
                 }
 
-    if pokemons:
-        log.info("Upserting {} pokemon".format(len(pokemons)))
-        bulk_upsert(Pokemon, pokemons)
+    with db.atomic():
+        if pokemons:
+            log.info("Upserting {} pokemon".format(len(pokemons)))
+            bulk_upsert(Pokemon, pokemons)
 
-    if pokestops:
-        log.info("Upserting {} pokestops".format(len(pokestops)))
-        bulk_upsert(Pokestop, pokestops)
+        if pokestops:
+            log.info("Upserting {} pokestops".format(len(pokestops)))
+            bulk_upsert(Pokestop, pokestops)
 
-    if gyms:
-        log.info("Upserting {} gyms".format(len(gyms)))
-        bulk_upsert(Gym, gyms)
+        if gyms:
+            log.info("Upserting {} gyms".format(len(gyms)))
+            bulk_upsert(Gym, gyms)
 
 
 def bulk_upsert(cls, data):
