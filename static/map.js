@@ -19,11 +19,21 @@ try {
     console.log(excludedPokemon);
 } catch (e) {}
 
-var d = "displayPokemons" in localStorage ? localStorage.displayPokemons : 'true';
-document.getElementById('pokemon-checkbox').checked = (d === 'true');
-d = "displayGyms" in localStorage ? localStorage.displayGyms : 'true';
-document.getElementById('gyms-checkbox').checked = (d === 'true');
 
+function getFromStorage(keyName, default_value) {
+    var res = localStorage.getItem(keyName);
+    if(res){
+        return res === "true";
+    } else {
+        return default_value;
+    }
+}
+
+document.getElementById('pokemon-checkbox').checked = getFromStorage("displayPokemons", "true");
+document.getElementById('gyms-checkbox').checked = getFromStorage("displayGyms", "true");
+document.getElementById('coverage-checkbox').checked = getFromStorage("displayCoverage", "true");
+
+ 
 $.getJSON("static/locales/pokemon.en.json").done(function(data) {
     var pokeList = [];
 
@@ -65,6 +75,8 @@ function initMap() {
         streetViewControl: false,
         disableAutoPan: true
     });
+    
+    updateMap();
 
     currentLocationMarker = new google.maps.Marker({
         position: {lat: center_lat, lng: center_lng},
@@ -239,7 +251,6 @@ function updateMap() {
                 animation: google.maps.Animation.DROP
             });
 
-            console.log("is different");
             if (coverCircle) {
                 coverCircle.setCenter(searchLocation);
                 coverCircle.setRadius(searchLocation['radius']);
@@ -255,9 +266,8 @@ function updateMap() {
                     center: searchLocation,
                     radius: searchLocation['radius']
                 });
+                coverCircle.setVisible(document.getElementById('coverage-checkbox').checked);
             }
-        } else {
-            console.log("not different");
         }
 
        $.each(result.pokemons, function(i, item){
@@ -303,7 +313,6 @@ function updateMap() {
 }
 
 window.setInterval(updateMap, 10000);
-updateMap();
 
 $('#gyms-checkbox').change(function() {
     localStorage.displayGyms = this.checked;
@@ -327,6 +336,11 @@ $('#pokemon-checkbox').change(function() {
         });
         map_pokemons = {}
     }
+});
+
+$('#coverage-checkbox').change(function() {
+    localStorage.displayCoverage = this.checked;
+    coverCircle.setVisible(this.checked);    
 });
 
 var coverCircles = [];
