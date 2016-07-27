@@ -52,21 +52,19 @@ class RpcApi:
 
         self.auth_provider = None
 
+        pycurl_options = {pycurl.FOLLOWLOCATION: 1, pycurl.MAXREDIRS: 5,
+                          pycurl.NOSIGNAL: 1, pycurl.USERAGENT: 'Niantic App',
+                          pycurl.CONNECTTIMEOUT: 10000,
+                          pycurl.CAINFO: certifi.where()}
+
         try:
             pycurl.Curl().setopt(pycurl.DNS_SERVERS, "8.8.8.8")
-            dns_available = True
+            # If the above line does not fail, DNS is available
+            pycurl_options[pycurl.DNS_SERVERS] = "8.8.8.8"
         except:
-            dns_available = False
+            pass  # Just use default DNS Server
 
-
-        if dns_available:
-            self._curl = ParallelCurl({pycurl.FOLLOWLOCATION: 1, pycurl.MAXREDIRS: 5, pycurl.DNS_SERVERS: "8.8.8.8",
-                                       pycurl.NOSIGNAL: 1, pycurl.USERAGENT: 'Niantic App',
-                                       pycurl.CONNECTTIMEOUT: 10000, pycurl.CAINFO: certifi.where()}, 8)
-        else:
-            self._curl = ParallelCurl({pycurl.FOLLOWLOCATION: 1, pycurl.MAXREDIRS: 5,
-                                       pycurl.NOSIGNAL: 1, pycurl.USERAGENT: 'Niantic App',
-                                       pycurl.CONNECTTIMEOUT: 10000, pycurl.CAINFO: certifi.where()}, 8)
+        self._curl = ParallelCurl(pycurl_options, 8)
 
     def get_rpc_id(self):
         return 8145806132888207460

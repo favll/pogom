@@ -16,7 +16,6 @@ from .models import parse_map, SearchConfig
 log = logging.getLogger(__name__)
 
 TIMESTAMP = '\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000'
-REQ_SLEEP = 1
 api = PGoApi()
 queue = collections.deque()
 consecutive_map_fails = 0
@@ -112,7 +111,7 @@ def login_if_necessary(args, position):
         login(args, position)
 
 
-def search(args):
+def search(args, req_sleep=1):
     num_steps = len(SearchConfig.COVER)
 
     i = 1
@@ -124,7 +123,7 @@ def search(args):
         while not response_dict:
             log.info('Map Download failed. Trying again.')
             response_dict = send_map_request(api, step_location, args)
-            time.sleep(REQ_SLEEP)
+            time.sleep(req_sleep)
 
         try:
             parse_map(response_dict)
@@ -171,7 +170,7 @@ def search_async(args):
             queue.clear()
             queue.extend(SearchConfig.COVER)
 
-        if (i%20 == 0):
+        if (i % 20 == 0):
             log.info(api._rpc._curl.stats())
 
         i += 1
@@ -209,7 +208,7 @@ def callback(response_dict):
         log.exception('Failed to parse response: {}'.format(response_dict))
         consecutive_map_fails += 1
     except:  # make sure we dont crash in the main loop
-        log.exception('Unexpected error when parsing response: {}'.format(response_dict))
+        log.exception('Unexpected error while parsing response: {}'.format(response_dict))
         consecutive_map_fails += 1
 
 

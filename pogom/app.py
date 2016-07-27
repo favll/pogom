@@ -18,7 +18,9 @@ log = logging.getLogger(__name__)
 class Pogom(Flask):
     def __init__(self, *args, **kwargs):
         super(Pogom, self).__init__(*args, **kwargs)
+        self.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
         self.json_encoder = CustomJSONEncoder
+
         self.route('/', methods=['GET'])(self.fullmap)
         self.route('/map-data', methods=['GET'])(self.map_data)
         self.route('/cover', methods=['GET'])(self.cover)
