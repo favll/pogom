@@ -26,11 +26,11 @@ document.getElementById('gyms-checkbox').checked = (d === 'true');
 
 $.getJSON("static/locales/pokemon.en.json").done(function(data) {
     var pokeList = [];
-    
+
     $.each(data, function(key, value) {
         pokeList.push( { id: key, text: value } );
     });
-    
+
     $selectExclude.select2({
         placeholder: "Type to exclude Pokemon",
         data: pokeList
@@ -39,7 +39,7 @@ $.getJSON("static/locales/pokemon.en.json").done(function(data) {
 });
 
 // exclude multi-select listener
-$selectExclude.on("change", function (e) { 
+$selectExclude.on("change", function (e) {
     excludedPokemon = $selectExclude.val().map(Number);
     localStorage.excludedPokemon = JSON.stringify(excludedPokemon);
     clearStaleMarkers();
@@ -49,8 +49,8 @@ $selectExclude.on("change", function (e) {
 $('#map').on('click', '#new-loc-btn', function () {
      newLocationMarker.setMap(null);
 
-    $.post("set-location", 
-           {'lat': newLocationMarker.getPosition().lat(), 
+    $.post("set-location",
+           {'lat': newLocationMarker.getPosition().lat(),
             'lng':  newLocationMarker.getPosition().lng()},
         function( data ) {
             updateMap();
@@ -72,13 +72,13 @@ function initMap() {
         animation: google.maps.Animation.DROP
     });
 
-    // on click listener for 
+    // on click listener for
     google.maps.event.addListener(map, 'click', function(event) {
         if (newLocationMarker) {
             newLocationMarker.setMap(null);
        }
         newLocationMarker = new google.maps.Marker({
-            position: event.latLng, 
+            position: event.latLng,
             map: map
         });
         newLocationMarker.infoWindow = new google.maps.InfoWindow({
@@ -93,9 +93,9 @@ function initMap() {
 };
 
 
-function pokemonLabel(name, disappear_time, id, latitude, longitude) {
+function pokemonLabel(name, id, disappear_time, latitude, longitude) {
     var disappear_date = new Date(disappear_time);
-    
+
     var label = `
         <div>
             <b>${name}</b>
@@ -105,10 +105,10 @@ function pokemonLabel(name, disappear_time, id, latitude, longitude) {
             </small>
         </div>
         <div>
-            Disappears at ${pad(disappear_date.getHours())}:${pad(disappear_date.getMinutes())}:${pad(disappear_date.getSeconds())} 
+            Disappears at ${pad(disappear_date.getHours())}:${pad(disappear_date.getMinutes())}:${pad(disappear_date.getSeconds())}
             <span class='label-countdown' disappears-at='${disappear_time}'>(00m00s)</span></div>
         <div>
-            <a href='https://www.google.com/maps/dir/Current+Location/${latitude},${longitude}' 
+            <a href='https://www.google.com/maps/dir/Current+Location/${latitude},${longitude}'
                     target='_blank' title='View in Maps'>Get Directions</a>
         </div>`;
     return label;
@@ -151,12 +151,12 @@ function setupPokemonMarker(item) {
         map: map,
         icon: myIcon
     });
-    
+
     marker.infoWindow = new google.maps.InfoWindow({
-        content: pokemonLabel(item.pokemon_name, item.disappear_time, item.pokemon_id, item.disappear_time, item.latitude, item.longitude),
+        content: pokemonLabel(item.pokemon_name, item.pokemon_id, item.disappear_time, item.latitude, item.longitude),
         disableAutoPan: true
     });
-    
+
     addListeners(marker);
     return marker;
 }
@@ -167,12 +167,12 @@ function setupGymMarker(item) {
         map: map,
         icon: 'static/forts/'+gym_types[item.team_id]+'.png'
     });
-    
+
     marker.infoWindow = new google.maps.InfoWindow({
         content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points),
         disableAutoPan: true
     });
-    
+
     addListeners(marker);
     return marker;
 }
@@ -183,7 +183,7 @@ function addListeners(marker){
         updateLabelDiffTime();
         marker.persist = true;
     });
-    
+
     google.maps.event.addListener(marker.infoWindow,'closeclick',function(){
         marker.persist = null;
     });
@@ -207,7 +207,7 @@ function addListeners(marker){
 
 function clearStaleMarkers(){
     $.each(map_pokemons, function(key, value) {
-        
+
         if (map_pokemons[key]['disappear_time'] < new Date().getTime() ||
                 excludedPokemon.indexOf(map_pokemons[key]['pokemon_id']) >= 0) {
             map_pokemons[key].marker.setMap(null);
@@ -228,7 +228,7 @@ function updateMap() {
         dataType: "json"
     }).done(function(result){
         statusLabels(result["server_status"]);
-        
+
          if (JSON.stringify(result['search_area']) !== JSON.stringify(searchLocation)) {
             searchLocation = result['search_area'];
 
@@ -273,12 +273,12 @@ function updateMap() {
                 map_pokemons[item.encounter_id] = item;
             }
         });
-        
+
         $.each(result.gyms, function(i, item){
             if (!document.getElementById('gyms-checkbox').checked) {
                 return false; // in case the checkbox was unchecked in the meantime.
             }
-            
+
             if (item.gym_id in map_gyms) {
                 // if team has changed, create new marker (new icon)
                 if (map_gyms[item.gym_id].team_id != item.team_id) {
@@ -288,8 +288,7 @@ function updateMap() {
                     map_gyms[item.gym_id].marker.infoWindow = new google.maps.InfoWindow({
                         content: gymLabel(gym_types[item.team_id], item.team_id, item.gym_points),
                         disableAutoPan: true
-                });
-                    
+                    });
                 }
             }
             else { // add marker to map and item to dict
@@ -334,18 +333,18 @@ var coverCircles = [];
 /*
 function displayCoverage() {
     if (currentLocationMarker) currentLocationMarker.setMap(null);
-    
+
     $.each(coverCircles, function(i, circle) {
         circle.setMap(null);
     });
-    
-    $.getJSON("cover", {format: "json"}).done(function(data) { 
+
+    $.getJSON("cover", {format: "json"}).done(function(data) {
         currentLocationMarker = new google.maps.Marker({
             position: {lat: data['center']['lat'], lng: data['center']['lng']},
             map: map,
             animation: google.maps.Animation.DROP
         });
-    
+
         $.each(data['cover'], function(i, point) {
             coverCircles.push(new google.maps.Circle({
                 strokeColor: '#FF0000',
@@ -428,7 +427,7 @@ var updateLabelDiffTime = function() {
     $('.label-countdown').each(function (index, element) {
         var disappearsAt = new Date(parseInt(element.getAttribute("disappears-at")));
         var now = new Date();
-        
+
         var difference = Math.abs(disappearsAt - now);
         var hours = Math.floor(difference / 36e5);
         var minutes = Math.floor((difference - (hours * 36e5)) / 6e4);
@@ -437,12 +436,12 @@ var updateLabelDiffTime = function() {
         var timestring = "";
         if(disappearsAt < now){
             timestring = "(expired)";
-        } 
+        }
         else {
             timestring = "(";
             if(hours > 0)
                 timestring = hours + "h";
-            
+
             timestring += ("0" + minutes).slice(-2) + "m";
             timestring += ("0" + seconds).slice(-2) + "s";
             timestring += ")";
