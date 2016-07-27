@@ -5,19 +5,20 @@ Heavily using [pgoapi](https://github.com/tejado/pgoapi).
 
 ![image](https://cloud.githubusercontent.com/assets/1723176/17143769/c5db3a80-5354-11e6-85d9-ba664e293cfc.png)
 
-##Usage (the usual):
+##Installation and usage:
+
+On Linux, for Debian-based distributions, you should install pycurl's dependencies before installing the project's requirements:
+
+`sudo apt-get install libssl-dev libcurl4-openssl-dev python-dev`
 
 Edit `pogom/__init__.py` and enter your GMaps Key.
+
 ```
 pip install -r requirements.txt
 python runserver.py -u USERNAME -p PASSWORD -l LOCATION -r SEARCHRADIUS -c
 ```
 The `-c` flag switches to pycurl (python wrapper around the libcurl library) as downloader. This is so performant that the parsing and DB stuff becomes the bottleneck. 
 
-On linux you possibly also have to install libcurl:
-```
-sudo apt-get install libcurl4-openssl-dev
-```
 
 ##Features
 - [x] Extremely fast (scans a 5km search radius in 1m30s with the -c flag)
