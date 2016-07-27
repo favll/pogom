@@ -52,7 +52,14 @@ class RpcApi:
 
         self.auth_provider = None
 
-        if hasattr(pycurl, 'DNS_SERVERS'):
+        try:
+            pycurl.Curl().setopt(pycurl.DNS_SERVERS, "8.8.8.8")
+            dns_available = True
+        except:
+            dns_available = False
+
+
+        if dns_available:
             self._curl = ParallelCurl({pycurl.FOLLOWLOCATION: 1, pycurl.MAXREDIRS: 5, pycurl.DNS_SERVERS: "8.8.8.8",
                                        pycurl.NOSIGNAL: 1, pycurl.USERAGENT: 'Niantic App',
                                        pycurl.CONNECTTIMEOUT: 10000, pycurl.CAINFO: certifi.where()}, 8)
