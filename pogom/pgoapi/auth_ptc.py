@@ -59,7 +59,7 @@ class AuthPtc(Auth):
         try:
             jdata = json.loads(r.content.decode('utf-8'))
         except ValueError:
-            self.log.error('Could not decode response: {}'.format(r.content.decode('utf-8')))
+            self.log.error('Could not decode response')
             return False
 
         data = {
