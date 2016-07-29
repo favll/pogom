@@ -140,6 +140,7 @@ def search(args, req_sleep=1):
             break
 
         i += 1
+        time.sleep(0.2)
 
 
 def search_async(args):
