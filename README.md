@@ -3,6 +3,9 @@ The no-bloat version of [PokemonGo-Map](https://github.com/AHAAAAAAA/PokemonGo-M
 
 Heavily using [pgoapi](https://github.com/tejado/pgoapi). 
 
+Due to throttling of the niantic servers the `-c` option does not work at the moment. We have released a hotfix so that you can use the map without the -c option. However, it will not be as fast as before. We are currently evaluating options to achieve higher scan speeds again. See the comments of issue #58.
+
+
 ![image](https://cloud.githubusercontent.com/assets/1723176/17143769/c5db3a80-5354-11e6-85d9-ba664e293cfc.png)
 
 ##Installation and usage:
