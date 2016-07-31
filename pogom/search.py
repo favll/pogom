@@ -28,7 +28,7 @@ def set_cover():
     lat = SearchConfig.ORIGINAL_LATITUDE
     lng = SearchConfig.ORIGINAL_LONGITUDE
 
-    d = math.sqrt(3) * 100
+    d = math.sqrt(3) * 70
     points = [[{'lat2': lat, 'lon2': lng, 's': 0}]]
 
     for i in xrange(1, maxint):
