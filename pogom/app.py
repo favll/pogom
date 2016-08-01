@@ -3,10 +3,14 @@
 
 import logging
 import calendar
-from flask import Flask, jsonify, render_template, request, abort
+from flask import Flask, jsonify, render_template, request, abort, redirect, url_for, make_response 
 from flask.json import JSONEncoder
 from datetime import datetime
 import time
+import json
+import threading
+import random
+import string
 
 from . import config
 from .models import Pokemon, Gym, Pokestop, SearchConfig
@@ -26,12 +30,77 @@ class Pogom(Flask):
         self.route('/cover', methods=['GET'])(self.cover)
         self.route('/set-location', methods=['POST'])(self.set_location)
         self.route('/stats', methods=['GET'])(self.stats)
+        self.route('/config', methods=['GET'])(self.get_config_site)
+        self.route('/config', methods=['POST'])(self.post_config_site)
+        self.route('/login', methods=['GET', 'POST'])(self.login)
 
     def fullmap(self):
+        if not 'search_thread' in [t.name for t in threading.enumerate()]:
+            return redirect(url_for('config_site'))
+            
         return render_template('map.html',
                                lat=SearchConfig.ORIGINAL_LATITUDE,
                                lng=SearchConfig.ORIGINAL_LONGITUDE,
                                gmaps_key=config['GOOGLEMAPS_KEY'])
+
+    def login(self):
+        if not config.get('CONFIG_PASSWORD', None):
+            return redirect(url_for('get_config_site'))
+    
+        if request.method == "GET":
+            return render_template('login.html')
+           
+        if request.form.get('password', None) == config.get('CONFIG_PASSWORD', None):
+            resp = make_response(redirect(url_for('get_config_site')))
+            resp.set_cookie('auth', config['AUTH_KEY'])
+            return resp
+
+                           
+    def get_config_site(self):
+        if config.get('CONFIG_PASSWORD', None) and not request.cookies.get("auth") == config['AUTH_KEY']:
+            return redirect(url_for('login'))
+    
+        return render_template('config.html', gmaps_key=config.get('GOOGLEMAPS_KEY', None), 
+                                              accounts=config.get('ACCOUNTS', []),
+                                              password=config.get('CONFIG_PASSWORD', None))
+                                              
+    def post_config_site(self):
+        if config.get('CONFIG_PASSWORD', None) and not request.cookies.get("auth") == config['AUTH_KEY']:
+            return redirect(url_for('login'))
+    
+        config['GOOGLEMAPS_KEY'] = request.form.get('gmapsKey', '')
+        
+        pw = request.form.get('configPassword', None)
+        if not pw == config['CONFIG_PASSWORD']:
+            config['CONFIG_PASSWORD'] = pw
+            config['AUTH_KEY'] = ''.join(random.choice(string.lowercase) for _ in range(32))
+        
+        accounts_str = request.form.get('accounts', None)
+        accounts_parsed = []
+        if accounts_str:
+            for a in accounts_str.splitlines():
+                a = a.split(":")
+                if len(a) == 2:
+                    # TODO: check if account already exists
+                    accounts_parsed.append( { 'user': a[0].strip(), 'pass': a[1].strip() } )
+        
+        config['ACCOUNTS'] = accounts_parsed
+        self.save_config()
+        
+        # TODO: (re)start thread
+        
+        return render_template('config.html', gmaps_key=config.get('GOOGLEMAPS_KEY', None), 
+                                              accounts=config.get('ACCOUNTS', []),
+                                              password=config.get('CONFIG_PASSWORD', None),
+                                              alert=True)
+
+    def save_config(self):
+        with open("config.json", "w") as f:
+            data = { 'GOOGLEMAPS_KEY': config['GOOGLEMAPS_KEY'],
+                     'CONFIG_PASSWORD': config['CONFIG_PASSWORD'],
+                     'ACCOUNTS': config['ACCOUNTS']}
+            f.write(json.dumps(data))
+    
 
     def map_data(self):
         d = {}
