@@ -165,12 +165,15 @@ class PGoApiWorker(Thread):
         self.log.info('Execution of RPC')
         response = None
 
-        sc_53 = True  # Status code 53?
-        while sc_53:
+        again = True  # Status code 53 or not logged in?
+        while again:
             try:
                 response = self.rpc_api.request(self._api_endpoint, self._req_method_list, position)
             except ServerBusyOrOfflineException as e:
                 self.log.info('Server seems to be busy or offline - try again!')
+            except NotLoggedInException:
+                self._login_if_necessary(position)
+                continue
 
             if 'api_url' in response:
                 self._api_endpoint = 'https://{}/rpc'.format(response['api_url'])
@@ -181,7 +184,7 @@ class PGoApiWorker(Thread):
             # no usable response data in the current response
             if not ('status_code' in response and response['status_code'] == 53):
                 # If current response is not an endpoint-response exit the loop
-                sc_53 = False
+                again = False
 
         # cleanup after call execution
         self.log.info('Cleanup of request!')
