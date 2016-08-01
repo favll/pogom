@@ -208,7 +208,7 @@ class PGoApiWorker(Thread):
 
         while not self._auth_provider.login():
             sleep_t = min(math.exp(consecutive_fails / 1.7), 5 * 60)
-            log.info('Login failed, retrying in {:.2f} seconds'.format(sleep_t))
+            self.log.info('Login failed, retrying in {:.2f} seconds'.format(sleep_t))
             consecutive_fails += 1
             time.sleep(sleep_t)
 
