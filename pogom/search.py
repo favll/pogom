@@ -110,13 +110,13 @@ def search(api):
                             position=next_pos,
                             callback=callback)
 
-        api.wait_until_done()
-
         # Location change
         if SearchConfig.CHANGE:
             log.info("Changing scan location")
             SearchConfig.CHANGE = False
             api.empty_queue()
+
+    api.wait_until_done()
 
 
 def search_loop(args):

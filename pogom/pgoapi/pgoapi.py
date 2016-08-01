@@ -141,10 +141,18 @@ class PGoApiWorker(Thread):
                 time.sleep(self._ready_at - time.time())
             method, position, callback = self._queue.get()
             self._req_method_list.append(method)
-            response = self.call(position)
-            self._ready_at = time.time() + 5.2
-            callback(response)
+
+            try:
+                response = self.call(position)
+            except AuthException as e:
+                self._ready_at = time.time() + 5 * 60
+                self._queue.put((method, position, callback))
+                response = {}
+            else:
+                self._ready_at = time.time() + 5.2
+
             self._queue.task_done()
+            callback(response)
 
     def call(self, position):
         if not self._req_method_list:
@@ -160,20 +168,20 @@ class PGoApiWorker(Thread):
 
         # request = RpcApi(self._auth_provider)
 
-        self._login_if_necessary(position)
-
         self.log.info('Execution of RPC')
         response = None
 
         again = True  # Status code 53 or not logged in?
         retries = 5
         while again:
+            self._login_if_necessary(position)
+
             try:
                 response = self.rpc_api.request(self._api_endpoint, self._req_method_list, position)
                 if not response:
                     raise ValueError('Request returned problematic response: {}'.format(response))
             except NotLoggedInException:
-                self._login_if_necessary(position)
+                # self._login_if_necessary(position)
                 continue
             except Exception as e:
                 if isinstance(e, ServerBusyOrOfflineException):
@@ -211,6 +219,8 @@ class PGoApiWorker(Thread):
             self.log.info('Login failed, retrying in {:.2f} seconds'.format(sleep_t))
             consecutive_fails += 1
             time.sleep(sleep_t)
+            if consecutive_fails == 5:
+                raise AuthException('Login failed five times.')
 
         self.log.info('Login successful')
 
