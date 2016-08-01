@@ -101,7 +101,7 @@ def search(api):
 
         # TODO: Add error throttle
 
-        cell_ids = get_cell_ids(next_pos[0], next_pos[1])
+        cell_ids = get_cell_ids(next_pos[0], next_pos[1], radius=70)
         timestamps = [0, ] * len(cell_ids)
         api.get_map_objects(latitude=f2i(next_pos[0]),
                             longitude=f2i(next_pos[1]),
