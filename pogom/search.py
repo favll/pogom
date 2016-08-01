@@ -20,25 +20,9 @@ from . import config
 
 log = logging.getLogger(__name__)
 
-# TIMESTAMP = '\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000'
-TIMESTAMP = 0
-queue = collections.deque()
 consecutive_map_fails = 0
-
-scan_start_time = 0
-min_time_per_scan = 3 * 60
-
 steps_completed = 0
 num_steps = 0
-
-
-def load_accounts():
-    file_path = os.path.join(config['ROOT_PATH'], 'accounts.json')
-
-    with open(file_path, 'r') as f:
-        accounts = json.loads(f.read())
-
-    return accounts['accounts']
 
 
 def set_cover():
@@ -118,6 +102,7 @@ def search(api):
         log.debug('Scan location is {:f}, {:f}'.format(next_pos[0], next_pos[1]))
 
         # TODO: Add error throttle
+
         cell_ids = get_cell_ids(next_pos[0], next_pos[1])
         timestamps = [0, ] * len(cell_ids)
         api.get_map_objects(latitude=f2i(next_pos[0]),
@@ -128,18 +113,22 @@ def search(api):
                             callback=callback)
 
         api.wait_until_done()
-        # TODO: Add location change
-        # if SearchConfig.CHANGE:
-        #     log.info("Changing scan location")
-        #     SearchConfig.CHANGE = False
-        #     queue.clear()
-        #     queue.extend(SearchConfig.COVER)
+
+        # Location change
+        if SearchConfig.CHANGE:
+            log.info("Changing scan location")
+            SearchConfig.CHANGE = False
+            api.empty_queue()
+            return False
+
+    return True
 
 
-def throttle():
+def throttle(scan_start_time):
     if scan_start_time == 0:
         return
 
+    min_time_per_scan = 3 * 60
     sleep_time = max(min_time_per_scan - (time.time() - scan_start_time), 0)
     log.info("Scan finished. Sleeping {:.2f} seconds before continuing.".format(sleep_time))
     SearchConfig.LAST_SUCCESSFUL_REQUEST = -1
@@ -149,15 +138,18 @@ def throttle():
 
 
 def search_loop(args):
+    global steps_completed
     api = PGoApi()
-    api.add_workers(load_accounts())
+    api.add_workers(config['ACCOUNTS'])
+
+    scan_start_time = 0
+    scan_completed = False
 
     while True:
-        throttle()
+        if scan_completed:
+            throttle(scan_start_time)
 
-        scan_start_time = time.time()
-        search(api)
-        SearchConfig.COMPLETE_SCAN_TIME = time.time() - scan_start_time
-        time.sleep(5)
-        global steps_completed
         steps_completed = 0
+        scan_start_time = time.time()
+        scan_completed = search(api)
+        SearchConfig.COMPLETE_SCAN_TIME = time.time() - scan_start_time

@@ -30,7 +30,7 @@
         <label for="accounts">PTC Accounts</label>
         <textarea class="form-control" rows="8" id="accounts" name="accounts" placeholder="username1:password1
 username2:password2">
-{% for account in accounts %}{{ account['user'] }}:{{ account['pass'] }}
+{% for account in accounts %}{{ account['username'] }}:{{ account['password'] }}
 {% endfor %}</textarea>
       </div>
       <div class="form-group">

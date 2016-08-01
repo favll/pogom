@@ -24,11 +24,12 @@ def start_locator_thread(args):
     search_thread.name = 'search_thread'
     search_thread.start()
 
+
 def read_config():
     try:
         with open("config.json", "r") as f:
             c = json.loads(f.read())
-            
+
             config['GOOGLEMAPS_KEY'] = c.get('GOOGLEMAPS_KEY', None)
             config['CONFIG_PASSWORD'] = c.get('CONFIG_PASSWORD', None)
             config['ACCOUNTS'] = c.get('ACCOUNTS', None)
@@ -38,7 +39,7 @@ def read_config():
     if config['CONFIG_PASSWORD']:
         config['AUTH_KEY'] = ''.join(random.choice(string.lowercase) for _ in range(32))
 
-        
+
 if __name__ == '__main__':
     args = get_args()
 
@@ -65,11 +66,10 @@ if __name__ == '__main__':
     read_config()
     set_location(args.location, args.radius)
     set_cover()
-    
+
     if config.get('ACCOUNTS', None) and config.get('GOOGLEMAPS_KEY', None):
         start_locator_thread(args)
 
-        
     app = Pogom(__name__)
     config['ROOT_PATH'] = app.root_path
     app.run(threaded=True, debug=args.debug, host=args.host, port=args.port)

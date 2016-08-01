@@ -91,22 +91,30 @@ class PGoApi:
 
             if kwargs:
                 method = {RequestType.Value(name): kwargs}
-                # self.log.info(
-                #    "Adding '%s' to RPC request including arguments", name)
-                # self.log.debug("Arguments of '%s': \n\r%s", name, kwargs)
+                self.log.info(
+                   "Adding '%s' to RPC request including arguments", name)
+                self.log.debug("Arguments of '%s': \n\r%s", name, kwargs)
             else:
                 method = RequestType.Value(name)
                 self.log.info("Adding '%s' to RPC request", name)
 
             self.call_method(method, position, callback)
 
-        # if func.upper() in RequestType.keys():
-        return function
-        # else:
-        # raise AttributeError
+        if func.upper() in RequestType.keys():
+            return function
+        else:
+            raise AttributeError
 
     def call_method(self, method, position, callback):
         self._queue.put((method, position, callback))
+
+    def empty_queue(self):
+        while not self._queue.empty():
+            try:
+                self._queue.get(False)
+                self.task_done()
+            except Queue.Empty:
+                return
 
     def wait_until_done(self):
         self._queue.join()
