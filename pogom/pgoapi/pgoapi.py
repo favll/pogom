@@ -166,13 +166,23 @@ class PGoApiWorker(Thread):
         response = None
 
         again = True  # Status code 53 or not logged in?
+        retries = 5
         while again:
             try:
                 response = self.rpc_api.request(self._api_endpoint, self._req_method_list, position)
-            except ServerBusyOrOfflineException as e:
-                self.log.info('Server seems to be busy or offline - try again!')
+                if not response:
+                    raise ValueError('Request returned problematic response: {}'.format(response))
             except NotLoggedInException:
                 self._login_if_necessary(position)
+                continue
+            except Exception as e:
+                if isinstance(e, ServerBusyOrOfflineException):
+                    self.log.info('Server seems to be busy or offline!')
+                else:
+                    self.log.info('Unexpected error during request: {}'.format(e))
+                if retries == 0:
+                    return {}
+                retries -= 1
                 continue
 
             if 'api_url' in response:

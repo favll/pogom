@@ -80,11 +80,9 @@ def callback(response_dict):
         SearchConfig.LAST_SUCCESSFUL_REQUEST = time.time()
         consecutive_map_fails = 0
         log.debug("Parsed & saved.")
-    except KeyError:
-        log.exception('Failed to parse response: {}'.format(response_dict))
-        consecutive_map_fails += 1
     except:  # make sure we dont crash in the main loop
-        log.exception('Unexpected error while parsing response: {}'.format(response_dict))
+        log.error('Unexpected error while parsing response.')
+        log.debug('Response dict: {}'.format(response_dict))
         consecutive_map_fails += 1
     else:
         global steps_completed
@@ -119,22 +117,6 @@ def search(api):
             log.info("Changing scan location")
             SearchConfig.CHANGE = False
             api.empty_queue()
-            return False
-
-    return True
-
-
-def throttle(scan_start_time):
-    if scan_start_time == 0:
-        return
-
-    min_time_per_scan = 3 * 60
-    sleep_time = max(min_time_per_scan - (time.time() - scan_start_time), 0)
-    log.info("Scan finished. Sleeping {:.2f} seconds before continuing.".format(sleep_time))
-    SearchConfig.LAST_SUCCESSFUL_REQUEST = -1
-    while sleep_time > 0 and not SearchConfig.CHANGE:
-        time.sleep(1)
-        sleep_time -= 1
 
 
 def search_loop(args):
@@ -143,13 +125,9 @@ def search_loop(args):
     api.add_workers(config['ACCOUNTS'])
 
     scan_start_time = 0
-    scan_completed = False
 
     while True:
-        if scan_completed:
-            throttle(scan_start_time)
-
         steps_completed = 0
         scan_start_time = time.time()
-        scan_completed = search(api)
+        search(api)
         SearchConfig.COMPLETE_SCAN_TIME = time.time() - scan_start_time

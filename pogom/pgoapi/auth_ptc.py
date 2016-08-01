@@ -51,7 +51,12 @@ class AuthPtc(Auth):
         self.log.info('Login for: %s', self.username)
 
         head = {'User-Agent': 'niantic'}
-        r = self._session.get(self.PTC_LOGIN_URL, headers=head)
+
+        try:
+            r = self._session.get(self.PTC_LOGIN_URL, headers=head, timeout=10)
+        except Exception as e:
+            self.log.error('PTC Login failed.')
+            self.log.debug('PTC Login fail: {}'.format(e))
 
         try:
             jdata = json.loads(r.content.decode('utf-8'))
@@ -68,7 +73,12 @@ class AuthPtc(Auth):
         except KeyError as e:
             self.log.error('Field missing in response.content: %s' % e)
             return False
-        r1 = self._session.post(self.PTC_LOGIN_URL, data=data, headers=head)
+
+        try:
+            r1 = self._session.post(self.PTC_LOGIN_URL, data=data, headers=head, timeout=10)
+        except Exception as e:
+            self.log.error('PTC Login failed.')
+            self.log.debug('PTC Login fail: {}'.format(e))
 
         ticket = None
         try:
@@ -88,7 +98,12 @@ class AuthPtc(Auth):
             'code': ticket,
         }
 
-        r2 = self._session.post(self.PTC_LOGIN_OAUTH, data=data1)
+        try:
+            r2 = self._session.post(self.PTC_LOGIN_OAUTH, data=data1, timeout=10)
+        except Exception as e:
+            self.log.error('PTC Login failed.')
+            self.log.debug('PTC Login fail: {}'.format(e))
+
         access_token = re.sub('&expires.*', '', r2.content.decode('utf-8'))
         access_token = re.sub('.*access_token=', '', access_token)
 
