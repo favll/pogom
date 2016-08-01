@@ -50,3 +50,11 @@ class EmptySubrequestChainException(Exception):
 
 class ServerSideRequestThrottlingException(Exception):
     pass
+
+
+class ServerSideAccessForbiddenException(Exception):
+    pass
+
+
+class UnexpectedResponseException(Exception):
+    pass
