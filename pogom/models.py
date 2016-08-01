@@ -72,10 +72,16 @@ class Pokemon(BaseModel):
                  .group_by(Pokemon.pokemon_id)
                  .order_by(-SQL('count'))
                  .dicts())
+                 
+        pokemons = list(query)
 
-        for p in query:
+        known_pokemon = set( p['pokemon_id'] for p in query )
+        unknown_pokemon = set(range(1,151)).difference(known_pokemon)
+        pokemons.extend( { 'pokemon_id': i, 'count': 0 } for i in unknown_pokemon)
+        
+        for p in pokemons:
             p['pokemon_name'] = get_pokemon_name(p['pokemon_id'])
-        return query
+        return pokemons
 
 
 class Pokestop(BaseModel):
