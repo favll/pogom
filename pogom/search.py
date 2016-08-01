@@ -122,7 +122,9 @@ def search(api):
 def search_loop(args):
     global steps_completed
     api = PGoApi()
-    api.add_workers(config['ACCOUNTS'])
+    num_workers = int(math.ceil(len(config['ACCOUNTS']) / 5.0))
+    api.create_workers(num_workers)
+    api.add_accounts(config['ACCOUNTS'])
 
     scan_start_time = 0
 
