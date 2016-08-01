@@ -23,244 +23,272 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 Author: tjado <https://github.com/tejado>
 """
 
+# from __future__ import absolute_import
+
+import re
+import base64
+import random
 import logging
 import requests
 import subprocess
 
-from exceptions import NotLoggedInException, ServerBusyOrOfflineException
+from google.protobuf import message
 
-from protobuf_to_dict import protobuf_to_dict
-from utilities import to_camel_case, get_class
+from importlib import import_module
 
-import protos.RpcEnum_pb2 as RpcEnum
-import protos.RpcEnvelope_pb2 as RpcEnvelope
+from .protobuf_to_dict import protobuf_to_dict
+from .exceptions import NotLoggedInException, ServerBusyOrOfflineException, ServerSideRequestThrottlingException
+from .utilities import f2i, h2f, to_camel_case, get_time_ms, get_format_time_diff
 
-import pycurl
-import certifi
-from parallel_curl import ParallelCurl
-
-log = logging.getLogger(__name__)
-
-RPC_ID = 8145806132888207460
+# from . import protos
+from .protos import POGOProtos
+from POGOProtos.Networking.Envelopes_pb2 import RequestEnvelope
+from POGOProtos.Networking.Envelopes_pb2 import ResponseEnvelope
+from POGOProtos.Networking.Requests_pb2 import RequestType
 
 
 class RpcApi:
-    def __init__(self):
+    RPC_ID = 0
+
+    def __init__(self, auth_provider):
+
+        self.log = logging.getLogger(__name__)
+
         self._session = requests.session()
         self._session.headers.update({'User-Agent': 'Niantic App'})
         self._session.verify = True
 
-        self.auth_provider = None
+        self._auth_provider = auth_provider
 
-        pycurl_options = {pycurl.FOLLOWLOCATION: 1, pycurl.MAXREDIRS: 5,
-                          pycurl.NOSIGNAL: 1, pycurl.USERAGENT: 'Niantic App',
-                          pycurl.CONNECTTIMEOUT: 10000,
-                          pycurl.CAINFO: certifi.where()}
-
-        try:
-            pycurl.Curl().setopt(pycurl.DNS_SERVERS, "8.8.8.8")
-            # If the above line does not fail, DNS is available
-            pycurl_options[pycurl.DNS_SERVERS] = "8.8.8.8"
-        except:
-            pass  # Just use default DNS Server
-
-        self._curl = ParallelCurl(pycurl_options, 8)
+        if RpcApi.RPC_ID == 0:
+            RpcApi.RPC_ID = int(random.random() * 10 ** 18)
+            self.log.debug('Generated new random RPC Request id: %s', RpcApi.RPC_ID)
 
     def get_rpc_id(self):
-        return 8145806132888207460
+        RpcApi.RPC_ID += 1
+        self.log.debug("Incremented RPC Request ID: %s", RpcApi.RPC_ID)
+
+        return RpcApi.RPC_ID
 
     def decode_raw(self, raw):
-        process = subprocess.Popen(['protoc', '--decode_raw'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
         output = error = None
         try:
+            process = subprocess.Popen(['protoc', '--decode_raw'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
             output, error = process.communicate(raw)
         except:
-            pass
+            output = "Couldn't find protoc in your environment OR other issue..."
 
         return output
 
+    def get_class(self, cls):
+        module_, class_ = cls.rsplit('.', 1)
+        class_ = getattr(import_module(module_), class_)
+        return class_
+
     def _make_rpc(self, endpoint, request_proto_plain):
-        log.debug('Execution of RPC')
+        self.log.debug('Execution of RPC')
 
         request_proto_serialized = request_proto_plain.SerializeToString()
         try:
-            http_response = self._session.post(endpoint, data=request_proto_serialized, timeout=10)
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            http_response = self._session.post(endpoint, data=request_proto_serialized)
+        except requests.exceptions.ConnectionError as e:
             raise ServerBusyOrOfflineException
 
         return http_response
 
     def request(self, endpoint, subrequests, player_position):
-        if not self.auth_provider or self.auth_provider.is_login() is False:
+        if not self._auth_provider or self._auth_provider.is_login() is False:
             raise NotLoggedInException()
 
         request_proto = self._build_main_request(subrequests, player_position)
         response = self._make_rpc(endpoint, request_proto)
 
-        response_dict = parse_main_request(response.content, response.status_code, subrequests)
+        response_dict = self._parse_main_response(response, subrequests)
+
+        if ('auth_ticket' in response_dict) and ('expire_timestamp_ms' in response_dict['auth_ticket']) and (self._auth_provider.is_new_ticket(response_dict['auth_ticket']['expire_timestamp_ms'])):
+            had_ticket = self._auth_provider.has_ticket()
+
+            auth_ticket = response_dict['auth_ticket']
+            self._auth_provider.set_ticket(
+                [auth_ticket['expire_timestamp_ms'], base64.standard_b64decode(auth_ticket['start']), base64.standard_b64decode(auth_ticket['end'])])
+
+            now_ms = get_time_ms()
+            h, m, s = get_format_time_diff(now_ms, auth_ticket['expire_timestamp_ms'], True)
+
+            if had_ticket:
+                self.log.debug('Replacing old auth ticket with new one valid for %02d:%02d:%02d hours (%s < %s)', h, m, s, now_ms, auth_ticket['expire_timestamp_ms'])
+            else:
+                self.log.debug('Received auth ticket valid for %02d:%02d:%02d hours (%s < %s)', h, m, s, now_ms, auth_ticket['expire_timestamp_ms'])
+
+        if isinstance(response_dict, dict) and 'status_code' in response_dict:
+            sc = response_dict['status_code']
+            if sc == 102:
+                raise NotLoggedInException()
+            elif sc == 52:
+                raise ServerSideRequestThrottlingException("Request throttled by server... slow down man")
 
         return response_dict
 
-    def request_async(self, endpoint, subrequests, player_position, callback):
-        if not self.auth_provider or self.auth_provider.is_login() is False:
-            raise NotLoggedInException()
+    def _build_main_request(self, subrequests, player_position = None):
+        self.log.debug('Generating main RPC request...')
 
-        request_proto = self._build_main_request(subrequests, player_position)
-        request_proto_serialized = request_proto.SerializeToString()
-
-        bundle = {'callback': callback, 'subrequests': subrequests}
-
-        self._curl.add_request({pycurl.URL: endpoint, pycurl.POSTFIELDS: request_proto_serialized},
-                               self._success_callback, self._error_callback, bundle=bundle)
-
-    def _success_callback(self, handle, options, bundle, header_buf, data_buf):
-        response_data = data_buf.getvalue()
-        response_dict = parse_main_request(response_data, 200, bundle['subrequests'])
-        bundle['callback'](response_dict)
-
-    def _error_callback(self, handle, options, bundle, header_buf, data_buf):
-        log.warning("Error downloading map: {}".format(handle.getinfo(pycurl.RESPONSE_CODE)))
-        bundle['callback'](False)
-
-    def _build_main_request(self, subrequests, player_position=None):
-        log.debug('Generating main RPC request...')
-
-        request = RpcEnvelope.Request()
-        request.direction = RpcEnum.REQUEST
-        request.rpc_id = self.get_rpc_id()
+        request = RequestEnvelope()
+        request.status_code = 2
+        request.request_id = self.get_rpc_id()
 
         if player_position is not None:
             request.latitude, request.longitude, request.altitude = player_position
 
-            # ticket = self._auth_provider.get_ticket()
-            # if ticket:
-            # request.auth_ticket.expire_timestamp_ms, request.auth_ticket.start, request.auth_ticket.end = ticket
-        # else:
-        request.auth.provider = self.auth_provider.get_name()
-        request.auth.token.contents = self.auth_provider.get_token()
-        request.auth.token.unknown13 = 59
+        ticket = self._auth_provider.get_ticket()
+        if ticket:
+            self.log.debug('Found auth ticket - using this instead of oauth token')
+            request.auth_ticket.expire_timestamp_ms, request.auth_ticket.start, request.auth_ticket.end = ticket
+        else:
+            self.log.debug('NO auth ticket found - using oauth token')
+            request.auth_info.provider = self._auth_provider.get_name()
+            request.auth_info.token.contents = self._auth_provider.get_token()
+            request.auth_info.token.unknown2 = 59
 
         # unknown stuff
         request.unknown12 = 989
 
-        request = build_sub_requests(request, subrequests)
+        request = self._build_sub_requests(request, subrequests)
 
-        log.debug('Generated protobuf request: \n\r%s', request)
+        self.log.debug('Generated protobuf request: \n\r%s', request )
 
         return request
 
-    def finish_async(self, max_time=None):
-        self._curl.finish_requests(max_time)
+    def _build_sub_requests(self, mainrequest, subrequest_list):
+        self.log.debug('Generating sub RPC requests...')
 
+        for entry in subrequest_list:
+            if isinstance(entry, dict):
 
-def build_sub_requests(mainrequest, subrequest_list):
-    log.debug('Generating sub RPC requests...')
+                entry_id = list(entry.items())[0][0]
+                entry_content = entry[entry_id]
 
-    for entry in subrequest_list:
-        if isinstance(entry, dict):
+                entry_name = RequestType.Name(entry_id)
 
-            entry_id = entry.items()[0][0]
-            entry_content = entry[entry_id]
+                proto_name = to_camel_case(entry_name.lower()) + 'Message'
+                proto_classname = 'POGOProtos.Networking.Requests.Messages_pb2.' + proto_name
+                subrequest_extension = self.get_class(proto_classname)()
 
-            entry_name = RpcEnum.RequestMethod.Name(entry_id)
+                self.log.debug("Subrequest class: %s", proto_classname)
 
-            proto_name = to_camel_case(entry_name.lower()) + 'Request'
-            proto_classname = 'pogom.pgoapi.protos.RpcSub_pb2.' + proto_name
-            subrequest_extension = get_class(proto_classname)()
+                for (key, value) in entry_content.items():
+                    if isinstance(value, list):
+                        self.log.debug("Found list: %s - trying as repeated", key)
+                        for i in value:
+                            try:
+                                self.log.debug("%s -> %s", key, i)
+                                r = getattr(subrequest_extension, key)
+                                r.append(i)
+                            except Exception as e:
+                                self.log.warning('Argument %s with value %s unknown inside %s (Exception: %s)', key, i, proto_name, str(e))
+                    elif isinstance(value, dict):
+                        for k in value.keys():
+                            try:
+                                r = getattr(subrequest_extension, key)
+                                setattr(r, k, value[k])
+                            except Exception as e:
+                                self.log.warning('Argument %s with value %s unknown inside %s (Exception: %s)', key, str(value), proto_name, str(e))
+                    else:
+                        try:
+                            setattr(subrequest_extension, key, value)
+                        except Exception as e:
+                            try:
+                                self.log.debug("%s -> %s", key, value)
+                                r = getattr(subrequest_extension, key)
+                                r.append(value)
+                            except Exception as e:
+                                self.log.warning('Argument %s with value %s unknown inside %s (Exception: %s)', key, value, proto_name, str(e))
 
-            for (key, value) in entry_content.items():
-                # if isinstance(value, list):
-                # for i in value:
-                # r = getattr(subrequest_extension, key)
-                # setattr(r, key, value)
-                # else:
-                try:
-                    setattr(subrequest_extension, key, value)
-                except Exception as e:
-                    log.info('Argument %s with value %s unknown inside %s', key, value, proto_name)
+                subrequest = mainrequest.requests.add()
+                subrequest.request_type = entry_id
+                subrequest.request_message = subrequest_extension.SerializeToString()
 
-            subrequest = mainrequest.requests.add()
-            subrequest.type = entry_id
-            subrequest.parameters = subrequest_extension.SerializeToString()
+            elif isinstance(entry, int):
+                subrequest = mainrequest.requests.add()
+                subrequest.request_type = entry
+            else:
+                raise Exception('Unknown value in request list')
 
-        elif isinstance(entry, int):
-            subrequest = mainrequest.requests.add()
-            subrequest.type = entry
-        else:
-            raise Exception('Unknown value in request list')
+        return mainrequest
 
-    return mainrequest
+    def _parse_main_response(self, response_raw, subrequests):
+        self.log.debug('Parsing main RPC response...')
 
+        if response_raw.status_code != 200:
+            self.log.warning('Unexpected HTTP server response - needs 200 got %s', response_raw.status_code)
+            self.log.debug('HTTP output: \n%s', response_raw.content.decode('utf-8'))
+            return False
 
-def parse_main_request(response_content, response_status, subrequests):
-    log.debug('Parsing main RPC response...')
+        if response_raw.content is None:
+            self.log.warning('Empty server response!')
+            return False
 
-    if response_status != 200:
-        log.warning('Unexpected HTTP server response - needs 200 got %s', response_status)
-        log.debug('HTTP output: \n%s', response_content)
-        return False
-
-    if response_content is None:
-        log.warning('Empty server response!')
-        return False
-
-    response_proto = RpcEnvelope.Response()
-    try:
-        response_proto.ParseFromString(response_content)
-    except:
-        log.exception('Could not parse response: ')
-        return False
-
-    log.debug('Protobuf structure of rpc response:\n\r%s', response_proto)
-
-    response_proto_dict = protobuf_to_dict(response_proto)
-    response_proto_dict = parse_sub_responses(response_proto, subrequests, response_proto_dict)
-
-    return response_proto_dict
-
-
-def parse_sub_responses(response_proto, subrequests_list, response_proto_dict):
-    log.debug('Parsing sub RPC responses...')
-    response_proto_dict['responses'] = {}
-
-    list_len = len(subrequests_list) - 1
-    i = 0
-    for subresponse in response_proto.responses:
-        # log.debug( self.decode_raw(subresponse) )
-
-        if i > list_len:
-            log.info("Error - something strange happend...")
-
-        request_entry = subrequests_list[i]
-        if isinstance(request_entry, int):
-            entry_id = request_entry
-        else:
-            entry_id = request_entry.items()[0][0]
-
-        entry_name = RpcEnum.RequestMethod.Name(entry_id)
-        proto_name = to_camel_case(entry_name.lower()) + 'Response'
-        proto_classname = 'pogom.pgoapi.protos.RpcSub_pb2.' + proto_name
-
-        subresponse_return = None
+        response_proto = ResponseEnvelope()
         try:
-            subresponse_extension = get_class(proto_classname)()
-        except Exception as e:
-            subresponse_extension = None
-            error = 'Protobuf definition for {} not found'.format(proto_classname)
-            subresponse_return = error
-            log.debug(error)
+            response_proto.ParseFromString(response_raw.content)
+        except message.DecodeError as e:
+            self.log.warning('Could not parse response: %s', str(e))
+            return False
 
-        if subresponse_extension:
+        self.log.debug('Protobuf structure of rpc response:\n\r%s', response_proto)
+        try:
+            self.log.debug('Decode raw over protoc (protoc has to be in your PATH):\n\r%s', self.decode_raw(response_raw.content).decode('utf-8'))
+        except:
+            self.log.debug('Error during protoc parsing - ignored.')
+
+        response_proto_dict = protobuf_to_dict(response_proto)
+        response_proto_dict = self._parse_sub_responses(response_proto, subrequests, response_proto_dict)
+
+        return response_proto_dict
+
+    def _parse_sub_responses(self, response_proto, subrequests_list, response_proto_dict):
+        self.log.debug('Parsing sub RPC responses...')
+        response_proto_dict['responses'] = {}
+
+        if 'returns' in response_proto_dict:
+            del response_proto_dict['returns']
+
+        list_len = len(subrequests_list) - 1
+        i = 0
+        for subresponse in response_proto.returns:
+            if i > list_len:
+                self.log.info("Error - something strange happend...")
+
+            request_entry = subrequests_list[i]
+            if isinstance(request_entry, int):
+                entry_id = request_entry
+            else:
+                entry_id = list(request_entry.items())[0][0]
+
+            entry_name = RequestType.Name(entry_id)
+            proto_name = to_camel_case(entry_name.lower()) + 'Response'
+            proto_classname = 'POGOProtos.Networking.Responses_pb2.' + proto_name
+
+            self.log.debug("Parsing class: %s", proto_classname)
+
+            subresponse_return = None
             try:
-                subresponse_extension.ParseFromString(subresponse)
-                subresponse_return = protobuf_to_dict(subresponse_extension)
-            except:
-                error = "Protobuf definition for {} seems not to match".format(proto_classname)
+                subresponse_extension = self.get_class(proto_classname)()
+            except Exception as e:
+                subresponse_extension = None
+                error = 'Protobuf definition for {} not found'.format(proto_classname)
                 subresponse_return = error
-                log.debug(error)
+                self.log.debug(error)
 
-        response_proto_dict['responses'][entry_name] = subresponse_return
-        i += 1
+            if subresponse_extension:
+                try:
+                    subresponse_extension.ParseFromString(subresponse)
+                    subresponse_return = protobuf_to_dict(subresponse_extension)
+                except:
+                    error = "Protobuf definition for {} seems not to match".format(proto_classname)
+                    subresponse_return = error
+                    self.log.debug(error)
 
-    return response_proto_dict
+            response_proto_dict['responses'][entry_name] = subresponse_return
+            i += 1
+
+        return response_proto_dict

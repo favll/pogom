@@ -23,37 +23,38 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 Author: tjado <https://github.com/tejado>
 """
 
+# from __future__ import absolute_import
+
 import logging
 
-from auth import Auth
+from .auth import Auth
 from gpsoauth import perform_master_login, perform_oauth
 
-class AuthGoogle(Auth):
 
+class AuthGoogle(Auth):
     GOOGLE_LOGIN_ANDROID_ID = '9774d56d682e549c'
-    GOOGLE_LOGIN_SERVICE= 'audience:server:client_id:848232511240-7so421jotr2609rmqakceuu1luuq0ptb.apps.googleusercontent.com'
+    GOOGLE_LOGIN_SERVICE = 'audience:server:client_id:848232511240-7so421jotr2609rmqakceuu1luuq0ptb.apps.googleusercontent.com'
     GOOGLE_LOGIN_APP = 'com.nianticlabs.pokemongo'
     GOOGLE_LOGIN_CLIENT_SIG = '321187995bc7cdc2b5fc91b11a96e2baa8602c62'
 
-    def __init__(self):
-        Auth.__init__(self)
-        
+    def __init__(self, username, password):
+        Auth.__init__(self, username, password)
         self._auth_provider = 'google'
 
-    def login(self, username, password):
-        self.log.info('Google login for: {}'.format(username))
-        login = perform_master_login(username, password, self.GOOGLE_LOGIN_ANDROID_ID)
-        login = perform_oauth(username, login.get('Token', ''), self.GOOGLE_LOGIN_ANDROID_ID, self.GOOGLE_LOGIN_SERVICE, self.GOOGLE_LOGIN_APP,
+    def login(self):
+        self.log.info('Google login for: {}'.format(self.username))
+        login = perform_master_login(self.username, self.password, self.GOOGLE_LOGIN_ANDROID_ID)
+        login = perform_oauth(self.username, login.get('Token', ''), self.GOOGLE_LOGIN_ANDROID_ID, self.GOOGLE_LOGIN_SERVICE, self.GOOGLE_LOGIN_APP,
             self.GOOGLE_LOGIN_CLIENT_SIG)
-            
+
         self._auth_token = login.get('Auth')
-        
+
         if self._auth_token is None:
             self.log.info('Google Login failed.')
             return False
-        
+
         self._login = True
-            
+
         self.log.info('Google Login successful.')
         self.log.debug('Google Session Token: %s', self._auth_token[:25])
 

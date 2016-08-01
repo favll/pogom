@@ -23,13 +23,19 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 Author: tjado <https://github.com/tejado>
 """
 
-import struct
 import re
+import time
+import struct
+import logging
 
-from importlib import import_module
-from s2sphere import CellId, LatLng
+from json import JSONEncoder
+
+# other stuff
 from google.protobuf.internal import encoder
 from geopy.geocoders import GoogleV3
+from s2sphere import Cell, CellId, LatLng
+
+log = logging.getLogger(__name__)
 
 
 def f2i(float):
@@ -41,53 +47,58 @@ def f2h(float):
 
 
 def h2f(hex):
-    return struct.unpack('<d', struct.pack('<Q', int(hex, 16)))[0]
+    return struct.unpack('<d', struct.pack('<Q', int(hex,16)))[0]
 
 
 def to_camel_case(value):
-    def camelcase():
-        while True:
-            yield str.capitalize
+    return ''.join(word.capitalize() if word else '_' for word in value.split('_'))
 
-    c = camelcase()
-    return "".join(c.next()(x) if x else '_' for x in value.split("_"))
+
+# JSON Encoder to handle bytes
+class JSONByteEncoder(JSONEncoder):
+    def default(self, o):
+        return o.decode('utf-8')
 
 
 def get_pos_by_name(location_name):
-    prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
-    res = prog.match(location_name)
-    if res:
-        latitude, longitude, altitude = float(res.group(1)), float(res.group(2)), 0
-    else:
-        geolocator = GoogleV3()
-        loc = geolocator.geocode(location_name)
-        latitude, longitude, altitude = loc.latitude, loc.longitude, loc.altitude
+    geolocator = GoogleV3()
+    loc = geolocator.geocode(location_name, timeout=10)
+    if not loc:
+        return None
 
-    return (latitude, longitude, altitude)
+    log.info("Location for '%s' found: %s", location_name, loc.address)
+    log.info('Coordinates (lat/long/alt) for location: %s %s %s', loc.latitude, loc.longitude, loc.altitude)
 
-
-def get_class(cls):
-    module_, class_ = cls.rsplit('.', 1)
-    class_ = getattr(import_module(module_), class_)
-    return class_
+    return (loc.latitude, loc.longitude, loc.altitude)
 
 
-def get_cellid(lat, long):
+def get_cell_ids(lat, long, radius=10):
     origin = CellId.from_lat_lng(LatLng.from_degrees(lat, long)).parent(15)
     walk = [origin.id()]
+    right = origin.next()
+    left = origin.prev()
 
-    # 10 before and 10 after
-    next = origin.next()
-    prev = origin.prev()
-    for i in range(10):
-        walk.append(prev.id())
-        walk.append(next.id())
-        next = next.next()
-        prev = prev.prev()
-    return ''.join(map(encode, sorted(walk)))
+    # Search around provided radius
+    for i in range(radius):
+        walk.append(right.id())
+        walk.append(left.id())
+        right = right.next()
+        left = left.prev()
+
+    # Return everything
+    return sorted(walk)
 
 
-def encode(cellid):
-    output = []
-    encoder._VarintEncoder()(output.append, cellid)
-    return ''.join(output)
+def get_time_ms():
+    return int(round(time.time() * 1000))
+
+
+def get_format_time_diff(low, high, ms=True):
+    diff = (high - low)
+    if ms:
+        m, s = divmod(diff / 1000, 60)
+    else:
+        m, s = divmod(diff, 60)
+    h, m = divmod(m, 60)
+
+    return (h, m, s)
