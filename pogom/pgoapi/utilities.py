@@ -72,20 +72,32 @@ def get_pos_by_name(location_name):
     return (loc.latitude, loc.longitude, loc.altitude)
 
 
-def get_cell_ids(lat, long, radius=10):
-    origin = CellId.from_lat_lng(LatLng.from_degrees(lat, long)).parent(15)
-    walk = [origin.id()]
-    right = origin.next()
-    left = origin.prev()
+# def get_cell_ids(lat, long, radius=10):
+#     origin = CellId.from_lat_lng(LatLng.from_degrees(lat, long)).parent(15)
+#     walk = [origin.id()]
+#     right = origin.next()
+#     left = origin.prev()
 
-    # Search around provided radius
-    for i in range(radius):
-        walk.append(right.id())
-        walk.append(left.id())
-        right = right.next()
-        left = left.prev()
+#     # Search around provided radius
+#     for i in range(radius):
+#         walk.append(right.id())
+#         walk.append(left.id())
+#         right = right.next()
+#         left = left.prev()
 
-    # Return everything
+#     # Return everything
+#     return sorted(walk)
+
+
+def get_cell_ids(lat, lng):
+    origin = CellId.from_lat_lng(LatLng.from_degrees(lat, lng)).parent(15)
+    walk = set([origin.id()])
+
+    for direct_neighbor in origin.get_all_neighbors(15):
+        walk.add(direct_neighbor.id())
+        for indirect_neighbor in direct_neighbor.get_edge_neighbors():
+            walk.add(indirect_neighbor.id())
+
     return sorted(walk)
 
 
