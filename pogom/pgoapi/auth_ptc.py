@@ -50,6 +50,7 @@ class AuthPtc(Auth):
     def login(self):
         self.log.info('Login for: %s', self.username)
 
+        self._session.cookies.clear()
         head = {'User-Agent': 'niantic'}
 
         try:
@@ -69,6 +70,8 @@ class AuthPtc(Auth):
             }
         except ValueError as e:
             self.log.error('Field missing in response: %s' % e)
+            self.log.debug(r.url)
+            self.log.debug(r.content)
             return False
         except KeyError as e:
             self.log.error('Field missing in response.content: %s' % e)
