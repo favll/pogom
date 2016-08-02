@@ -83,7 +83,7 @@ class Pogom(Flask):
                 a = a.split(":")
                 if len(a) == 2:
                     # TODO: check if account already exists
-                    accounts_parsed.append({'user': a[0].strip(), 'pass': a[1].strip()})
+                    accounts_parsed.append({'username': a[0].strip(), 'password': a[1].strip()})
 
         config['ACCOUNTS'] = accounts_parsed
         self.save_config()

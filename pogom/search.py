@@ -95,13 +95,13 @@ def search(api):
     num_steps = len(SearchConfig.COVER)
     log.info("Starting scan of {} locations".format(num_steps))
 
-    for i, next_pos in izip(count(start=1), next_position()):
+    for i, next_pos in enumerate(next_position()):
         log.debug('Scanning step {:d} of {:d}.'.format(i, num_steps))
         log.debug('Scan location is {:f}, {:f}'.format(next_pos[0], next_pos[1]))
 
         # TODO: Add error throttle
 
-        cell_ids = get_cell_ids(next_pos[0], next_pos[1])
+        cell_ids = get_cell_ids(next_pos[0], next_pos[1], radius=70)
         timestamps = [0, ] * len(cell_ids)
         api.get_map_objects(latitude=f2i(next_pos[0]),
                             longitude=f2i(next_pos[1]),
@@ -110,19 +110,21 @@ def search(api):
                             position=next_pos,
                             callback=callback)
 
-        api.wait_until_done()
-
         # Location change
         if SearchConfig.CHANGE:
             log.info("Changing scan location")
             SearchConfig.CHANGE = False
             api.empty_queue()
 
+    api.wait_until_done()
+
 
 def search_loop(args):
     global steps_completed
     api = PGoApi()
-    api.add_workers(config['ACCOUNTS'])
+    num_workers = int(math.ceil(len(config['ACCOUNTS']) / 5.0))
+    api.create_workers(num_workers)
+    api.add_accounts(config['ACCOUNTS'])
 
     scan_start_time = 0
 

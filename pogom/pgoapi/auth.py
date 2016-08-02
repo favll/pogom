@@ -43,6 +43,7 @@ class Auth:
         self._ticket_expire = None
         self._ticket_start = None
         self._ticket_end = None
+        self._api_endpoint = 'https://pgorelease.nianticlabs.com/plfe/rpc'
 
     def get_name(self):
         return self._auth_provider
@@ -87,6 +88,12 @@ class Auth:
             return (self._ticket_expire, self._ticket_start, self._ticket_end)
         else:
             return False
+
+    def set_api_endpoint(api_endpoint):
+        self._api_endpoint = api_endpoint
+
+    def get_api_endpoint():
+        return self._api_endpoint
 
     def login(self):
         raise NotImplementedError()

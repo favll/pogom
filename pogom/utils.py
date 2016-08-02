@@ -19,10 +19,6 @@ def parse_unicode(bytestring):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-a', '--auth-service', type=str.lower, help='Auth Service [ptc|google]', default='ptc')
-    parser.add_argument('-u', '--username', help='Username', required=True)
-    parser.add_argument('-p', '--password', help='Password', required=False)
-
     parser.add_argument('-l', '--location', type=parse_unicode, help='Location, address or coordinates', required=True)
     parser.add_argument('-r', '--radius', help='Search radius [m]', required=True, type=int)
 
@@ -30,13 +26,8 @@ def get_args():
     parser.add_argument('-P', '--port', type=int, help='Set web server listening port', default=5000)
 
     parser.add_argument('-d', '--debug', type=str.lower, help='Debug Level [info|debug]', default=None)
-    parser.add_argument('-c', '--pycurl', help='Use pycurl downloader (unstable)', action='store_true')
 
-    args = parser.parse_args()
-    if args.password is None:
-        args.password = getpass.getpass()
-
-    return args
+    return parser.parse_args()
 
 
 def get_pokemon_name(pokemon_id):
