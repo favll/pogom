@@ -89,10 +89,10 @@ class Auth:
         else:
             return False
 
-    def set_api_endpoint(api_endpoint):
+    def set_api_endpoint(self, api_endpoint):
         self._api_endpoint = api_endpoint
 
-    def get_api_endpoint():
+    def get_api_endpoint(self):
         return self._api_endpoint
 
     def login(self):
