@@ -95,7 +95,7 @@ def search(api):
     num_steps = len(SearchConfig.COVER)
     log.info("Starting scan of {} locations".format(num_steps))
 
-    for i, next_pos in izip(count(start=1), next_position()):
+    for i, next_pos in enumerate(next_position()):
         log.debug('Scanning step {:d} of {:d}.'.format(i, num_steps))
         log.debug('Scan location is {:f}, {:f}'.format(next_pos[0], next_pos[1]))
 
