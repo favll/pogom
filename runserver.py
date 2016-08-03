@@ -36,7 +36,7 @@ def read_config():
     except:
         pass
 
-    if config['CONFIG_PASSWORD']:
+    if config.get('CONFIG_PASSWORD', None):
         config['AUTH_KEY'] = ''.join(random.choice(string.lowercase) for _ in range(32))
 
 

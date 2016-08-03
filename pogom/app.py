@@ -36,7 +36,7 @@ class Pogom(Flask):
 
     def fullmap(self):
         if 'search_thread' not in [t.name for t in threading.enumerate()]:
-            return redirect(url_for('config_site'))
+            return redirect(url_for('get_config_site'))
 
         return render_template('map.html',
                                lat=SearchConfig.ORIGINAL_LATITUDE,
@@ -72,7 +72,7 @@ class Pogom(Flask):
         config['GOOGLEMAPS_KEY'] = request.form.get('gmapsKey', '')
 
         pw = request.form.get('configPassword', None)
-        if not pw == config['CONFIG_PASSWORD']:
+        if not pw == config.get('CONFIG_PASSWORD', None):
             config['CONFIG_PASSWORD'] = pw
             config['AUTH_KEY'] = ''.join(random.choice(string.lowercase) for _ in range(32))
 
