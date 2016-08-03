@@ -23,13 +23,20 @@ class SearchConfig(object):
     COVER = None
     RADIUS = None
 
+    # scan_location = {
+    #     "latitude": 42.0,
+    #     "longitude": 42.0,
+    #     "radius": 1000,
+    #     "cover": None
+    # }
+
+    SCAN_LOCATIONS = []
+
     CHANGE = False  # Triggered when the setup is changed due to user input
 
     LOGGED_IN = 0.0
     LAST_SUCCESSFUL_REQUEST = 0.0
     COMPLETE_SCAN_TIME = 0
-
-    ACCOUNTS = []
 
 
 class BaseModel(Model):
@@ -72,13 +79,13 @@ class Pokemon(BaseModel):
                  .group_by(Pokemon.pokemon_id)
                  .order_by(-SQL('count'))
                  .dicts())
-                 
+
         pokemons = list(query)
 
         known_pokemon = set( p['pokemon_id'] for p in query )
         unknown_pokemon = set(range(1,151)).difference(known_pokemon)
         pokemons.extend( { 'pokemon_id': i, 'count': 0 } for i in unknown_pokemon)
-        
+
         for p in pokemons:
             p['pokemon_name'] = get_pokemon_name(p['pokemon_id'])
         return pokemons

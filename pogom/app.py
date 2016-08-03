@@ -3,7 +3,7 @@
 
 import logging
 import calendar
-from flask import Flask, jsonify, render_template, request, abort, redirect, url_for, make_response 
+from flask import Flask, jsonify, render_template, request, abort, redirect, url_for, make_response
 from flask.json import JSONEncoder
 from datetime import datetime
 import time
@@ -77,13 +77,14 @@ class Pogom(Flask):
             config['AUTH_KEY'] = ''.join(random.choice(string.lowercase) for _ in range(32))
 
         accounts_str = request.form.get('accounts', None)
+        usernames = set([])
         accounts_parsed = []
         if accounts_str:
             for a in accounts_str.splitlines():
                 a = a.split(":")
-                if len(a) == 2:
-                    # TODO: check if account already exists
+                if (len(a) == 2) and (a[0].strip() not in usernames):
                     accounts_parsed.append({'username': a[0].strip(), 'password': a[1].strip()})
+                    usernames.add(a[0].strip())
 
         config['ACCOUNTS'] = accounts_parsed
         self.save_config()

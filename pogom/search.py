@@ -82,7 +82,7 @@ def callback(response_dict):
         log.debug("Parsed & saved.")
     except:  # make sure we dont crash in the main loop
         log.error('Unexpected error while parsing response.')
-        log.debug('Response dict: {}'.format(response_dict))
+        log.error('Response dict: {}'.format(response_dict))
         consecutive_map_fails += 1
     else:
         global steps_completed
@@ -122,7 +122,8 @@ def search(api):
 def search_loop(args):
     global steps_completed
     api = PGoApi()
-    num_workers = int(math.ceil(len(config['ACCOUNTS']) / 5.0))
+    num_workers = int(math.ceil(len(config['ACCOUNTS']) / 23.0))
+    # num_workers = len(config['ACCOUNTS'])
     api.create_workers(num_workers)
     api.add_accounts(config['ACCOUNTS'])
 
