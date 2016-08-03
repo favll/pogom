@@ -61,15 +61,32 @@ class JSONByteEncoder(JSONEncoder):
 
 
 def get_pos_by_name(location_name):
-    geolocator = GoogleV3()
-    loc = geolocator.geocode(location_name, timeout=10)
-    if not loc:
-        return None
+    # geolocator = GoogleV3()
+    # loc = geolocator.geocode(location_name, timeout=10)
+    # if not loc:
+    #     return None
 
-    log.info("Location for '%s' found: %s", location_name, loc.address)
-    log.info('Coordinates (lat/long/alt) for location: %s %s %s', loc.latitude, loc.longitude, loc.altitude)
+    # log.info("Location for '%s' found: %s", location_name, loc.address)
+    # log.info('Coordinates (lat/long/alt) for location: %s %s %s', loc.latitude, loc.longitude, loc.altitude)
 
-    return (loc.latitude, loc.longitude, loc.altitude)
+    # return (loc.latitude, loc.longitude, loc.altitude)
+
+    prog = re.compile("^(\-?\d+\.\d+)?,\s*(\-?\d+\.\d+?)$")
+    res = prog.match(location_name)
+    latitude, longitude, altitude = None, None, None
+    if res:
+        latitude, longitude, altitude = float(res.group(1)), float(res.group(2)), 0
+    else:
+        geolocator = GoogleV3()
+        loc = geolocator.geocode(location_name, timeout=10)
+        if loc:
+            log.info("Location for '%s' found: %s", location_name, loc.address)
+            log.info('Coordinates (lat/long/alt) for location: %s %s %s', loc.latitude, loc.longitude, loc.altitude)
+            latitude, longitude, altitude = loc.latitude, loc.longitude, loc.altitude
+        else:
+            return None
+
+    return (latitude, longitude, altitude)
 
 
 def get_cell_ids(lat, lng, radius=1000):

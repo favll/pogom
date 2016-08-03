@@ -125,6 +125,10 @@ class PGoApi:
 
 
 class PGoApiWorker(Thread):
+    THROTTLE_TIME = 10.0
+    # In case the server returns a status code 3, this has to be requested
+    SC_3_REQUESTS = [RequestType.Value("GET_PLAYER")]
+
     def __init__(self, work_queue, auth_queue):
         Thread.__init__(self)
         self.log = logging.getLogger(__name__)
@@ -133,40 +137,44 @@ class PGoApiWorker(Thread):
         self._auth_queue = auth_queue
         self.rpc_api = RpcApi(None)
 
+    def _get_auth_provider(self):
+        while True:  # Maybe change this loop to something more beautiful?
+            next_call, auth_provider = self._auth_queue.get()
+            if (time.time() + self.THROTTLE_TIME < next_call):
+                # Probably one of the sidelined auth providers, skip it
+                self._auth_queue.put((next_call, auth_provider))
+            else:
+                # Sleep until the auth provider is ready
+                if (time.time() < next_call):  # Kind of a side effect -> bad
+                    time.sleep(next_call - time.time())
+                return auth_provider
+
     def run(self):
         while True:
             method, position, callback = self._work_queue.get()
-
-            # Get auth providers until we find one, that is
-            # ready in under 5 seconds
-            while True:  # Maybe change this loop to something more beautiful?
-                next_call, auth_provider = self._auth_queue.get()
-                if (time.time() + 5 < next_call):
-                    self._auth_queue.push((next_call, auth_provider))
-                else:
-                    break
-
-            # Sleep until the auth provider is ready
-            if (time.time() < next_call):
-                time.sleep(next_call - time.time())
+            auth_provider = self._get_auth_provider()
 
             # Let's do this.
             self.rpc_api._auth_provider = auth_provider
             try:
                 response = self.call(auth_provider, [method], position)
-            except AuthException as e:
+                next_call = time.time() + self.THROTTLE_TIME
+            except Exception as e:
                 # Too many login retries lead to an AuthException
-                # So let us sideline this one for 5 minutes
-                next_call = time.time() + 5 * 60
+                # So let us sideline this auth provider for 5 minutes
+                if isinstance(e, AuthException):
+                    self.log.error("AuthException in worker thread. Username: {}".format(auth_provider.username))
+                    next_call = time.time() + 5 * 60
+                else:
+                    self.log.error("Error in worker thread. Returning empty response. Error: {}".format(e))
+                    next_call = time.time() + self.THROTTLE_TIME
+
                 self._work_queue.put((method, position, callback))
                 response = {}
-            else:
-                next_call = time.time() + 5.2
-
-            self.rpc_api._auth_provider = None
-            self._auth_queue.put((next_call, auth_provider))
 
             self._work_queue.task_done()
+            self.rpc_api._auth_provider = None
+            self._auth_queue.put((next_call, auth_provider))
             callback(response)
 
     def call(self, auth_provider, req_method_list, position):
@@ -191,7 +199,7 @@ class PGoApiWorker(Thread):
                     raise ValueError('Request returned problematic response: {}'.format(response))
             except NotLoggedInException:
                 continue  # Trying again will call _login_if_necessary
-            except Exception as e:
+            except Exception as e:  # Never crash the worker
                 if isinstance(e, ServerBusyOrOfflineException):
                     self.log.info('Server seems to be busy or offline!')
                 else:
@@ -204,12 +212,14 @@ class PGoApiWorker(Thread):
             if 'api_url' in response:
                 auth_provider.set_api_endpoint('https://{}/rpc'.format(response['api_url']))
 
-            # Status code 53 indicates an endpoint-response.
-            # An endpoint-response returns a valid api url that can be used
-            # for the next request, however, it also indicates that there is
-            # no usable response data in the current response
-            if not ('status_code' in response and response['status_code'] == 53):
-                # If current response is not an endpoint-response exit the loop
+            if 'status_code' in response and response['status_code'] == 3:
+                self.log.info("Status code 3 returned. Performing get_player request.")
+                req_method_list = self.SC_3_REQUESTS + req_method_list
+            elif not ('status_code' in response and response['status_code'] == 53):
+                # Status code 53 indicates an endpoint-response.
+                # An endpoint-response returns a valid api url that can be used
+                # for the next request, however, it also indicates that there is
+                # no usable response data in the current response
                 again = False
 
         # cleanup after call execution
