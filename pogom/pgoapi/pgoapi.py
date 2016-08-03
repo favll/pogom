@@ -146,7 +146,7 @@ class PGoApiWorker(Thread):
             else:
                 # Sleep until the auth provider is ready
                 if (time.time() < next_call):  # Kind of a side effect -> bad
-                    time.sleep(next_call - time.time())
+                    time.sleep(max(next_call - time.time(), 0))
                 return auth_provider
 
     def run(self):
