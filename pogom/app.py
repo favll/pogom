@@ -11,16 +11,20 @@ import json
 import threading
 import random
 import string
+import os
 
 from . import config
-from .models import Pokemon, Gym, Pokestop, SearchConfig
+from .models import Pokemon, Gym, Pokestop
+from .scan import ScanMetrics, Scanner
 
 log = logging.getLogger(__name__)
 
 
 class Pogom(Flask):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, scan_config, *args, **kwargs):
         super(Pogom, self).__init__(*args, **kwargs)
+        self.scan_config = scan_config
+
         self.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
         self.json_encoder = CustomJSONEncoder
 
@@ -35,11 +39,11 @@ class Pogom(Flask):
         self.route('/login', methods=['GET', 'POST'])(self.login)
 
     def fullmap(self):
-        # if 'search_thread' not in [t.name for t in threading.enumerate()]:
-        #     return redirect(url_for('get_config_site'))
+        if 'search_thread' not in [t.name for t in threading.enumerate()]:
+            return redirect(url_for('get_config_site'))
 
         return render_template('map.html',
-                               scan_locations=json.dumps(SearchConfig.SCAN_LOCATIONS.values()),
+                               scan_locations=json.dumps(self.scan_config.SCAN_LOCATIONS.values()),
                                gmaps_key=config['GOOGLEMAPS_KEY'])
 
     def login(self):
@@ -88,7 +92,7 @@ class Pogom(Flask):
         config['ACCOUNTS'] = accounts_parsed
         self.save_config()
 
-        # TODO: (re)start thread
+        # TODO: Restart scanner
 
         return render_template(
             'config.html',
@@ -98,27 +102,34 @@ class Pogom(Flask):
             alert=True)
 
     def save_config(self):
-        with open("config.json", "w") as f:
+        if (config['CONFIG_PATH'] is not None and
+                os.path.isfile(config['CONFIG_PATH'])):
+            config_path = config['CONFIG_PATH']
+        else:
+            config_path = os.path.join(config['ROOT_PATH'], 'config.json')
+
+        with open(config_path, 'w') as f:
             data = {'GOOGLEMAPS_KEY': config['GOOGLEMAPS_KEY'],
                     'CONFIG_PASSWORD': config['CONFIG_PASSWORD'],
+                    'SCAN_LOCATIONS': self.scan_config.SCAN_LOCATIONS.values(),
                     'ACCOUNTS': config['ACCOUNTS']}
             f.write(json.dumps(data))
 
     def map_data(self):
         d = {}
 
-        if not SearchConfig.LAST_SUCCESSFUL_REQUEST:
+        if not ScanMetrics.LAST_SUCCESSFUL_REQUEST:
             time_since_last_req = "na"
-        elif SearchConfig.LAST_SUCCESSFUL_REQUEST == -1:
+        elif ScanMetrics.LAST_SUCCESSFUL_REQUEST == -1:
             time_since_last_req = "sleep"
         else:
-            time_since_last_req = time.time() - SearchConfig.LAST_SUCCESSFUL_REQUEST
+            time_since_last_req = time.time() - ScanMetrics.LAST_SUCCESSFUL_REQUEST
 
-        d['server_status'] = {'login_time': SearchConfig.LOGGED_IN,
+        d['server_status'] = {'login_time': ScanMetrics.LOGGED_IN,
                               'last-successful-request': time_since_last_req,
-                              'complete-scan-time': SearchConfig.COMPLETE_SCAN_TIME}
+                              'complete-scan-time': ScanMetrics.COMPLETE_SCAN_TIME}
 
-        d['scan_locations'] = SearchConfig.SCAN_LOCATIONS
+        d['scan_locations'] = self.scan_config.SCAN_LOCATIONS
 
         if request.args.get('pokemon', 'true') == 'true':
             d['pokemons'] = Pokemon.get_active()
@@ -134,9 +145,8 @@ class Pogom(Flask):
         return jsonify(d)
 
     def cover(self):
-        return jsonify({'cover': SearchConfig.COVER,
-                        'center': {'lat': SearchConfig.ORIGINAL_LATITUDE,
-                                   'lng': SearchConfig.ORIGINAL_LONGITUDE}})
+        return jsonify({'cover': self.scan_config.COVER,
+                        'scan_locations': self.scan_config.SCAN_LOCATIONS.values()})
 
     def add_location(self):
         if config.get('CONFIG_PASSWORD', None) and not request.cookies.get("auth") == config['AUTH_KEY']:
@@ -149,9 +159,8 @@ class Pogom(Flask):
         if not (lat and lng and radius):
             abort(400)
 
-        SearchConfig.add_scan_location(lat, lng, radius)
-
-        # TODO: Update config
+        self.scan_config.add_scan_location(lat, lng, radius)
+        self.save_config()
 
         return ('', 204)
 
@@ -165,9 +174,8 @@ class Pogom(Flask):
         if not (lat and lng):
             abort(400)
 
-        SearchConfig.delete_scan_location(lat, lng)
-
-        # TODO: Update config
+        self.scan_config.delete_scan_location(lat, lng)
+        self.save_config()
 
         return ('', 204)
 

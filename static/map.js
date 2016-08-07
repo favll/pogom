@@ -73,9 +73,17 @@ function readCookie(name) {
 }
 
 function initMap() {
+    var initLat = 40.782850;  // NYC Central Park
+    var initLng = -73.965288;
+
+    if (initialScanLocations.length !== 0) {
+        initLat = initialScanLocations[0].latitude;
+        initLng = initialScanLocations[0].longitude;
+    }
+
     map = new google.maps.Map(document.getElementById('map'), {
-        // Change this to Geolocation?
-        center: {lat: initialScanLocations[0].latitude, lng: initialScanLocations[0].longitude},
+        // Change this to geolocation?
+        center: {lat: initLat, lng: initLng},
         zoom: 13,
         mapTypeControl: false,
         streetViewControl: false,
@@ -109,8 +117,9 @@ function initMap() {
         $('#map').on('click', '#new-loc-btn', function () {
             var radius = parseInt($('#new-loc-radius').val(), 10);
             newLocationMarker.setMap(null);
-            if (isNaN(radius)) {
-                return;  // TODO: Tell the user he fucked up
+            if (isNaN(radius) || radius < 100) {
+                alert("Radius not valid. Please note that the radius' unit is in meters and must be a whole number. It also should be >100m.")
+                return;
             }
 
             $.post("location",
