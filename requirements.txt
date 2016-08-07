@@ -16,3 +16,4 @@ requests==2.10.0
 s2sphere==0.2.4
 six==1.10.0
 wsgiref==0.1.2
+xxhash

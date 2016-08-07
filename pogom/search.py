@@ -80,11 +80,11 @@ def search(api):
     api.wait_until_done()
 
 
-def search_loop():
+def search_loop(signature_lib_path):
     global steps_completed
-    _update_cover()
+    # SearchConfig._update_cover()
 
-    api = PGoApi()
+    api = PGoApi(signature_lib_path)
     num_workers = min(int(math.ceil(len(config['ACCOUNTS']) / 23.0)), 3)
     api.create_workers(num_workers)
     api.add_accounts(config['ACCOUNTS'])

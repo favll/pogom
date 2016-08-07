@@ -38,7 +38,7 @@ from . import __title__, __version__, __copyright__
 from .rpc_api import RpcApi
 from .auth_ptc import AuthPtc
 from .auth_google import AuthGoogle
-from .exceptions import AuthException, NotLoggedInException, ServerBusyOrOfflineException, NoPlayerPositionSetException, EmptySubrequestChainException
+from .exceptions import AuthException, NotLoggedInException, ServerBusyOrOfflineException, NoPlayerPositionSetException, EmptySubrequestChainException, ServerApiEndpointRedirectException
 
 from . import protos
 from POGOProtos.Networking.Requests_pb2 import RequestType
@@ -47,9 +47,10 @@ logger = logging.getLogger(__name__)
 
 
 class PGoApi:
-    def __init__(self):
+    def __init__(self, signature_lib_path):
         self.set_logger()
 
+        self._signature_lib_path = signature_lib_path
         self._work_queue = Queue()
         self._auth_queue = PriorityQueue()
         self._workers = []
@@ -59,7 +60,7 @@ class PGoApi:
 
     def create_workers(self, num_workers):
         for i in xrange(num_workers):
-            worker = PGoApiWorker(self._work_queue, self._auth_queue)
+            worker = PGoApiWorker(self._signature_lib_path, self._work_queue, self._auth_queue)
             worker.daemon = True
             worker.start()
             self._workers.append(worker)
@@ -129,13 +130,14 @@ class PGoApiWorker(Thread):
     # In case the server returns a status code 3, this has to be requested
     SC_3_REQUESTS = [RequestType.Value("GET_PLAYER")]
 
-    def __init__(self, work_queue, auth_queue):
+    def __init__(self, signature_lib_path, work_queue, auth_queue):
         Thread.__init__(self)
         self.log = logging.getLogger(__name__)
 
         self._work_queue = work_queue
         self._auth_queue = auth_queue
         self.rpc_api = RpcApi(None)
+        self.rpc_api.activate_signature(signature_lib_path)
 
     def _get_auth_provider(self):
         while True:  # Maybe change this loop to something more beautiful?
@@ -198,7 +200,9 @@ class PGoApiWorker(Thread):
                 if not response:
                     raise ValueError('Request returned problematic response: {}'.format(response))
             except NotLoggedInException:
-                continue  # Trying again will call _login_if_necessary
+                pass  # Trying again will call _login_if_necessary
+            except ServerApiEndpointRedirectException as e:
+                auth_provider.set_api_endpoint('https://{}/rpc'.format(e.get_redirected_endpoint()))
             except Exception as e:  # Never crash the worker
                 if isinstance(e, ServerBusyOrOfflineException):
                     self.log.info('Server seems to be busy or offline!')
@@ -207,23 +211,15 @@ class PGoApiWorker(Thread):
                 if retries == 0:
                     return {}
                 retries -= 1
-                continue
+            else:
+                if 'api_url' in response:
+                    auth_provider.set_api_endpoint('https://{}/rpc'.format(response['api_url']))
 
-            if 'api_url' in response:
-                auth_provider.set_api_endpoint('https://{}/rpc'.format(response['api_url']))
-
-            if 'status_code' in response and response['status_code'] == 3:
-                self.log.info("Status code 3 returned. Performing get_player request.")
-                req_method_list = self.SC_3_REQUESTS + req_method_list
-            elif not ('status_code' in response and response['status_code'] == 53):
-                # Status code 53 indicates an endpoint-response.
-                # An endpoint-response returns a valid api url that can be used
-                # for the next request, however, it also indicates that there is
-                # no usable response data in the current response
-                again = False
-
-        # cleanup after call execution
-        self.log.info('Cleanup of request!')
+                if 'status_code' in response and response['status_code'] == 3:
+                    self.log.info("Status code 3 returned. Performing get_player request.")
+                    req_method_list = self.SC_3_REQUESTS + req_method_list
+                else:
+                    again = False
 
         return response
 
@@ -231,7 +227,7 @@ class PGoApiWorker(Thread):
         self.log.info('Attempting login')
         consecutive_fails = 0
 
-        while not auth_provider.login():
+        while not auth_provider.user_login():
             sleep_t = min(math.exp(consecutive_fails / 1.7), 5 * 60)
             self.log.info('Login failed, retrying in {:.2f} seconds'.format(sleep_t))
             consecutive_fails += 1

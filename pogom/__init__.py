@@ -4,5 +4,5 @@
 config = {
     'LOCALE': 'en',
     'LOCALES_DIR': 'static/locales',
-    'ROOT_PATH': None,
+    'ROOT_PATH': None
 }

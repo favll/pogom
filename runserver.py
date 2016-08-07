@@ -13,13 +13,14 @@ from pogom import config
 from pogom.app import Pogom
 from pogom.models import create_tables, SearchConfig
 from pogom.search import search_loop
-from pogom.utils import get_args
+from pogom.utils import get_args, get_encryption_lib_path
 
 log = logging.getLogger(__name__)
 
 
 def start_locator_thread():
-    search_thread = Thread(target=search_loop)
+    lib_path = get_encryption_lib_path()
+    search_thread = Thread(target=search_loop, args=(lib_path,))
 
     search_thread.daemon = True
     search_thread.name = 'search_thread'
@@ -72,8 +73,7 @@ if __name__ == '__main__':
     if (config.get('ACCOUNTS', None) and
             config.get('GOOGLEMAPS_KEY', None) and
             SearchConfig.SCAN_LOCATIONS):
-        # start_locator_thread()
-        pass
+        start_locator_thread()
 
     app = Pogom(__name__)
     config['ROOT_PATH'] = app.root_path
