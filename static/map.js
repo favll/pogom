@@ -440,7 +440,10 @@ $('#pokemon-checkbox').change(function() {
 
 $('#coverage-checkbox').change(function() {
     localStorage.displayCoverage = this.checked;
-    // TODO: Set cover circles invisible
+
+    scanLocations.forEach(function (scanLocation, key) {
+        scanLocation.circle.setVisible(this.checked);
+    }, this);
 });
 
 
