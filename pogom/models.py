@@ -2,10 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import random
+import math
 from peewee import Model, SqliteDatabase, InsertQuery, IntegerField, \
     CharField, FloatField, BooleanField, DateTimeField, fn, SQL
 from datetime import datetime
 from base64 import b64encode
+from sys import maxint
+from geographiclib.geodesic import Geodesic
+from pgoapi.utilities import get_pos_by_name
 
 from .utils import get_pokemon_name
 
@@ -23,20 +28,91 @@ class SearchConfig(object):
     COVER = None
     RADIUS = None
 
-    # scan_location = {
-    #     "latitude": 42.0,
-    #     "longitude": 42.0,
-    #     "radius": 1000,
-    #     "cover": None
-    # }
-
-    SCAN_LOCATIONS = []
+    SCAN_LOCATIONS = {}
 
     CHANGE = False  # Triggered when the setup is changed due to user input
 
     LOGGED_IN = 0.0
     LAST_SUCCESSFUL_REQUEST = 0.0
     COMPLETE_SCAN_TIME = 0
+
+    @classmethod
+    def update_scan_locations(cls, scan_locations):
+        location_names = set([])
+        # Add new locations
+        for scan_location in scan_locations:
+
+            if scan_location['location'] not in cls.SCAN_LOCATIONS:
+                lat, lng, alt = get_pos_by_name(scan_location['location'])
+                log.info('Parsed location is: {:.4f}/{:.4f}/{:.4f} '
+                         '(lat/lng/alt)'.format(lat, lng, alt))
+                scan_location['latitude'] = lat
+                scan_location['longitude'] = lng
+                scan_location['altitude'] = alt
+                cls.SCAN_LOCATIONS[scan_location['location']] = scan_location
+            location_names.add(scan_location['location'])
+
+        # Remove old locations
+        for location_name in cls.SCAN_LOCATIONS:
+            if location_name not in location_names:
+                del cls.SCAN_LOCATIONS[location_name]
+
+        cls._update_cover()
+
+    @classmethod
+    def add_scan_location(cls, lat, lng, radius):
+        scan_location = {
+            'location': '{},{}'.format(lat, lng),
+            'latitude': lat,
+            'longitude': lng,
+            'altitude': 0,
+            'radius': radius
+        }
+
+        cls.SCAN_LOCATIONS[scan_location['location']] = scan_location
+        cls._update_cover()
+
+    @classmethod
+    def delete_scan_location(cls, lat, lng):
+        for k, v in cls.SCAN_LOCATIONS.iteritems():
+            if v['latitude'] == lat and v['longitude'] == lng:
+                del cls.SCAN_LOCATIONS[k]
+                cls._update_cover()
+                return
+
+    @classmethod
+    def _update_cover(cls):
+        cover = []
+        for scan_location in cls.SCAN_LOCATIONS.values():
+            lat = scan_location["latitude"]
+            lng = scan_location["longitude"]
+            radius = scan_location["radius"]
+
+            d = math.sqrt(3) * 70
+            points = [[{'lat2': lat, 'lon2': lng, 's': 0}]]
+
+            # The lines below are magic. Don't touch them.
+            for i in xrange(1, maxint):
+                oor_counter = 0
+
+                points.append([])
+                for j in range(0, 6 * i):
+                    p = points[i - 1][(j - j / i - 1 + (j % i == 0))]
+                    p_new = Geodesic.WGS84.Direct(p['lat2'], p['lon2'], (j+i-1)/i * 60, d)
+                    p_new['s'] = Geodesic.WGS84.Inverse(p_new['lat2'], p_new['lon2'], lat, lng)['s12']
+                    points[i].append(p_new)
+
+                    if p_new['s'] > radius:
+                        oor_counter += 1
+
+                if oor_counter == 6 * i:
+                    break
+
+            cover.extend({"lat": p['lat2'], "lng": p['lon2']}
+                         for sublist in points for p in sublist if p['s'] < radius)
+
+        random.shuffle(cover)  # Shuffles list in-place
+        cls.COVER = cover
 
 
 class BaseModel(Model):

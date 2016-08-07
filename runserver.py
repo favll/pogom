@@ -3,22 +3,23 @@
 
 import logging
 import sys
-from threading import Thread
 import json
 import random
 import string
+import os
+from threading import Thread
 
 from pogom import config
 from pogom.app import Pogom
-from pogom.models import create_tables
-from pogom.search import search_loop, set_cover, set_location
+from pogom.models import create_tables, SearchConfig
+from pogom.search import search_loop
 from pogom.utils import get_args
 
 log = logging.getLogger(__name__)
 
 
-def start_locator_thread(args):
-    search_thread = Thread(target=search_loop, args=(args,))
+def start_locator_thread():
+    search_thread = Thread(target=search_loop)
 
     search_thread.daemon = True
     search_thread.name = 'search_thread'
@@ -26,15 +27,18 @@ def start_locator_thread(args):
 
 
 def read_config():
+    config_path = os.path.join(
+        os.path.dirname(os.path.realpath(sys.argv[0])), "config.json")
     try:
-        with open("config.json", "r") as f:
+        with open(config_path, "r") as f:
             c = json.loads(f.read())
-
-            config['GOOGLEMAPS_KEY'] = c.get('GOOGLEMAPS_KEY', None)
-            config['CONFIG_PASSWORD'] = c.get('CONFIG_PASSWORD', None)
-            config['ACCOUNTS'] = c.get('ACCOUNTS', None)
     except:
-        pass
+        c = {}
+
+    config['GOOGLEMAPS_KEY'] = c.get('GOOGLEMAPS_KEY', None)
+    config['CONFIG_PASSWORD'] = c.get('CONFIG_PASSWORD', None)
+    config['ACCOUNTS'] = c.get('ACCOUNTS', None)
+    SearchConfig.update_scan_locations(c.get('SCAN_LOCATIONS', {}))
 
     if config.get('CONFIG_PASSWORD', None):
         config['AUTH_KEY'] = ''.join(random.choice(string.lowercase) for _ in range(32))
@@ -64,11 +68,12 @@ if __name__ == '__main__':
 
     create_tables()
     read_config()
-    set_location(args.location, args.radius)
-    set_cover()
 
-    if config.get('ACCOUNTS', None) and config.get('GOOGLEMAPS_KEY', None):
-        start_locator_thread(args)
+    if (config.get('ACCOUNTS', None) and
+            config.get('GOOGLEMAPS_KEY', None) and
+            SearchConfig.SCAN_LOCATIONS):
+        # start_locator_thread()
+        pass
 
     app = Pogom(__name__)
     config['ROOT_PATH'] = app.root_path

@@ -14,7 +14,6 @@ import string
 
 from . import config
 from .models import Pokemon, Gym, Pokestop, SearchConfig
-from .search import set_cover
 
 log = logging.getLogger(__name__)
 
@@ -28,19 +27,19 @@ class Pogom(Flask):
         self.route('/', methods=['GET'])(self.fullmap)
         self.route('/map-data', methods=['GET'])(self.map_data)
         self.route('/cover', methods=['GET'])(self.cover)
-        self.route('/set-location', methods=['POST'])(self.set_location)
+        self.route('/location', methods=['POST'])(self.add_location)
+        self.route('/location', methods=['DELETE'])(self.delete_location)
         self.route('/stats', methods=['GET'])(self.stats)
         self.route('/config', methods=['GET'])(self.get_config_site)
         self.route('/config', methods=['POST'])(self.post_config_site)
         self.route('/login', methods=['GET', 'POST'])(self.login)
 
     def fullmap(self):
-        if 'search_thread' not in [t.name for t in threading.enumerate()]:
-            return redirect(url_for('get_config_site'))
+        # if 'search_thread' not in [t.name for t in threading.enumerate()]:
+        #     return redirect(url_for('get_config_site'))
 
         return render_template('map.html',
-                               lat=SearchConfig.ORIGINAL_LATITUDE,
-                               lng=SearchConfig.ORIGINAL_LONGITUDE,
+                               scan_locations=json.dumps(SearchConfig.SCAN_LOCATIONS.values()),
                                gmaps_key=config['GOOGLEMAPS_KEY'])
 
     def login(self):
@@ -118,9 +117,8 @@ class Pogom(Flask):
         d['server_status'] = {'login_time': SearchConfig.LOGGED_IN,
                               'last-successful-request': time_since_last_req,
                               'complete-scan-time': SearchConfig.COMPLETE_SCAN_TIME}
-        d['search_area'] = {'lat': SearchConfig.ORIGINAL_LATITUDE,
-                            'lng': SearchConfig.ORIGINAL_LONGITUDE,
-                            'radius': SearchConfig.RADIUS}
+
+        d['scan_locations'] = SearchConfig.SCAN_LOCATIONS
 
         if request.args.get('pokemon', 'true') == 'true':
             d['pokemons'] = Pokemon.get_active()
@@ -140,17 +138,36 @@ class Pogom(Flask):
                         'center': {'lat': SearchConfig.ORIGINAL_LATITUDE,
                                    'lng': SearchConfig.ORIGINAL_LONGITUDE}})
 
-    def set_location(self):
+    def add_location(self):
+        if config.get('CONFIG_PASSWORD', None) and not request.cookies.get("auth") == config['AUTH_KEY']:
+            return redirect(url_for('login'))
+
+        lat = request.values.get('lat', type=float)
+        lng = request.values.get('lng', type=float)
+        radius = request.values.get('radius', type=int)
+
+        if not (lat and lng and radius):
+            abort(400)
+
+        SearchConfig.add_scan_location(lat, lng, radius)
+
+        # TODO: Update config
+
+        return ('', 204)
+
+    def delete_location(self):
+        if config.get('CONFIG_PASSWORD', None) and not request.cookies.get("auth") == config['AUTH_KEY']:
+            return redirect(url_for('login'))
+
         lat = request.values.get('lat', type=float)
         lng = request.values.get('lng', type=float)
 
         if not (lat and lng):
             abort(400)
 
-        SearchConfig.ORIGINAL_LATITUDE = lat
-        SearchConfig.ORIGINAL_LONGITUDE = lng
-        set_cover()
-        SearchConfig.CHANGE = True
+        SearchConfig.delete_scan_location(lat, lng)
+
+        # TODO: Update config
 
         return ('', 204)
 

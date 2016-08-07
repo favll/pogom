@@ -8,13 +8,12 @@ import collections
 import cProfile
 import os
 import json
-from sys import maxint
-from geographiclib.geodesic import Geodesic
+import random
 from datetime import datetime
 from itertools import izip, count
 
 from pgoapi import PGoApi
-from pgoapi.utilities import f2i, get_cell_ids, get_pos_by_name
+from pgoapi.utilities import f2i, get_cell_ids
 from .models import parse_map, SearchConfig
 from . import config
 
@@ -23,44 +22,6 @@ log = logging.getLogger(__name__)
 consecutive_map_fails = 0
 steps_completed = 0
 num_steps = 0
-
-
-def set_cover():
-    lat = SearchConfig.ORIGINAL_LATITUDE
-    lng = SearchConfig.ORIGINAL_LONGITUDE
-
-    d = math.sqrt(3) * 70
-    points = [[{'lat2': lat, 'lon2': lng, 's': 0}]]
-
-    for i in xrange(1, maxint):
-        oor_counter = 0
-
-        points.append([])
-        for j in range(0, 6 * i):
-            p = points[i - 1][(j - j / i - 1 + (j % i == 0))]
-            p_new = Geodesic.WGS84.Direct(p['lat2'], p['lon2'], (j+i-1)/i * 60, d)
-            p_new['s'] = Geodesic.WGS84.Inverse(p_new['lat2'], p_new['lon2'], lat, lng)['s12']
-            points[i].append(p_new)
-
-            if p_new['s'] > SearchConfig.RADIUS:
-                oor_counter += 1
-
-        if oor_counter == 6 * i:
-            break
-
-    cover = [{"lat": p['lat2'], "lng": p['lon2']}
-             for sublist in points for p in sublist if p['s'] < SearchConfig.RADIUS]
-    SearchConfig.COVER = cover
-
-
-def set_location(location, radius):
-    position = get_pos_by_name(location)
-    log.info('Parsed location is: {:.4f}/{:.4f}/{:.4f} (lat/lng/alt)'.
-             format(*position))
-
-    SearchConfig.ORIGINAL_LATITUDE = position[0]
-    SearchConfig.ORIGINAL_LONGITUDE = position[1]
-    SearchConfig.RADIUS = radius
 
 
 def next_position():
@@ -119,11 +80,12 @@ def search(api):
     api.wait_until_done()
 
 
-def search_loop(args):
+def search_loop():
     global steps_completed
+    _update_cover()
+
     api = PGoApi()
-    num_workers = int(math.ceil(len(config['ACCOUNTS']) / 23.0))
-    # num_workers = len(config['ACCOUNTS'])
+    num_workers = min(int(math.ceil(len(config['ACCOUNTS']) / 23.0)), 3)
     api.create_workers(num_workers)
     api.add_accounts(config['ACCOUNTS'])
 

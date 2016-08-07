@@ -8,10 +8,10 @@ var $selectExclude = $("#exclude-pokemon");
 var excludedPokemon = [];
 
 var map;
-var coverCircle;
-var searchLocation = {};
+var scanLocations = new Map();
+var coverCircles = [];
 var newLocationMarker;
-var currentLocationMarker;
+
 
 try {
     excludedPokemon = JSON.parse(localStorage.excludedPokemon);
@@ -60,53 +60,71 @@ $selectExclude.on("change", function (e) {
     clearStaleMarkers();
 });
 
-// change-location button listener
-$('#map').on('click', '#new-loc-btn', function () {
-     newLocationMarker.setMap(null);
-
-    $.post("set-location",
-           {'lat': newLocationMarker.getPosition().lat(),
-            'lng':  newLocationMarker.getPosition().lng()},
-        function( data ) {
-            updateMap();
-        }, "json");
-});
+// Stolen from http://www.quirksmode.org/js/cookies.html
+function readCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
 
 function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
-        center: {lat: center_lat, lng: center_lng},
+        // Change this to Geolocation?
+        center: {lat: initialScanLocations[0].latitude, lng: initialScanLocations[0].longitude},
         zoom: 13,
         mapTypeControl: false,
         streetViewControl: false,
         disableAutoPan: true
     });
     
+    updateScanLocations(initialScanLocations);
     updateMap();
 
-    currentLocationMarker = new google.maps.Marker({
-        position: {lat: center_lat, lng: center_lng},
-        map: map,
-        animation: google.maps.Animation.DROP
-    });
+    if(readCookie("auth") !== null) {
+        // on click listener for
+        google.maps.event.addListener(map, 'click', function(event) {
+            if (newLocationMarker) {
+                newLocationMarker.setMap(null);
+            }
+            newLocationMarker = new google.maps.Marker({
+                position: event.latLng,
+                map: map
+            });
+            newLocationMarker.infoWindow = new google.maps.InfoWindow({
+                content: "<button id=\"new-loc-btn\">Add new Location</button><input style=\"width: 75px;\" id=\"new-loc-radius\" type=\"number\" placeholder=\"Radius (meters)\">",
+                disableAutoPan: true
+            });
+            newLocationMarker.infoWindow.open(map, newLocationMarker);
+            google.maps.event.addListener(newLocationMarker.infoWindow,'closeclick',function(){
+                newLocationMarker.setMap(null); //removes the marker
+            });
+        });
 
-    // on click listener for
-    google.maps.event.addListener(map, 'click', function(event) {
-        if (newLocationMarker) {
+        // change-location button listener
+        $('#map').on('click', '#new-loc-btn', function () {
+            var radius = parseInt($('#new-loc-radius').val(), 10);
             newLocationMarker.setMap(null);
-       }
-        newLocationMarker = new google.maps.Marker({
-            position: event.latLng,
-            map: map
+            if (isNaN(radius)) {
+                return;  // TODO: Tell the user he fucked up
+            }
+
+            $.post("location",
+                {
+                    'lat': newLocationMarker.getPosition().lat(),
+                    'lng': newLocationMarker.getPosition().lng(),
+                    'radius': radius
+                },
+                function(data) {
+                    updateMap();
+                },
+            "json");
         });
-        newLocationMarker.infoWindow = new google.maps.InfoWindow({
-            content: "<button id=\"new-loc-btn\">Set new Location</button>",
-            disableAutoPan: true
-        });
-        newLocationMarker.infoWindow.open(map, newLocationMarker);
-        google.maps.event.addListener(newLocationMarker.infoWindow,'closeclick',function(){
-            newLocationMarker.setMap(null); //removes the marker
-        });
-    });
+    }
 };
 
 
@@ -222,12 +240,109 @@ function addListeners(marker){
 
 function clearStaleMarkers(){
     $.each(map_pokemons, function(key, value) {
-
         if (map_pokemons[key]['disappear_time'] < new Date().getTime() ||
                 excludedPokemon.indexOf(map_pokemons[key]['pokemon_id']) >= 0) {
             map_pokemons[key].marker.setMap(null);
             console.log("removing marker with key "+key);
             delete map_pokemons[key];
+        }
+    });
+}
+
+
+function newMarker(latitude, longitude) {
+    var marker = new google.maps.Marker({
+        position: {lat: latitude, lng: longitude},
+        map: map,
+        animation: google.maps.Animation.DROP
+    });
+
+    // This is soooo ugly...
+    if (readCookie("auth") !== null) {
+        var latStr = latitude.toString().replace('.', '');
+        var lngStr = longitude.toString().replace('.', '');
+        var buttonId = "del-loc-btn-" + latStr + lngStr;
+
+        marker.infoWindow = new google.maps.InfoWindow({
+            content: "<button id=\"" + buttonId + "\">Delete Location</button>",
+            disableAutoPan: true
+        });
+
+        marker.addListener('click', function () {
+            marker.infoWindow.open(map, marker);
+        });
+
+        // This is not a very beautiful solution
+        $('#map').on('click', '#' + buttonId, function () {
+            $.ajax({
+                url: 'location',
+                method: 'DELETE',
+                data: {
+                    'lat': latitude,
+                    'lng': longitude
+                },
+                success: function(data) {
+                    updateMap();
+                }
+            });
+
+            removeScanLocation(latitude + "," + longitude);
+        });
+    }
+
+
+    return marker;
+}
+
+function newCircle(latitude, longitude, radius) {
+    var coverCircle = new google.maps.Circle({
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.6,
+        strokeWeight: 1,
+        fillColor: '#FF0000',
+        fillOpacity: 0.08,
+        clickable: false,
+        map: map,
+        center: {lat: latitude, lng: longitude},
+        radius: radius
+    });
+    coverCircle.setVisible(document.getElementById('coverage-checkbox').checked);
+
+    return coverCircle;
+}
+
+
+function removeScanLocation(key) {
+    if (scanLocations.has(key)) {
+        var loc = scanLocations.get(key);
+        loc.marker.setMap(null);
+        loc.circle.setVisible(false);
+        scanLocations.delete(key);
+    }
+    return false;
+}
+
+
+function updateScanLocations(updatedScanLocations) {
+    var helperMap = new Map();
+
+    // Add new scan locations
+    $.each(updatedScanLocations, function (i, scanLocation) {
+        var key = scanLocation.latitude + "," + scanLocation.longitude;
+        helperMap.set(key, scanLocation);
+        if (!scanLocations.has(key)) {
+            scanLocations.set(key, {
+                location: scanLocation,
+                marker: newMarker(scanLocation.latitude, scanLocation.longitude),
+                circle: newCircle(scanLocation.latitude, scanLocation.longitude, scanLocation.radius)
+            });
+        }
+    });
+
+    // Remove old scan locations
+    $.each(scanLocations.keys(), function(i, key) {
+        if (!helperMap.has(key)) {
+            removeScanLocation(key);
         }
     });
 }
@@ -241,39 +356,12 @@ function updateMap() {
                'pokestops-lured': document.getElementById('pokestops-lured-checkbox').checked,
                'gyms': localStorage.displayGyms},
         dataType: "json"
-    }).done(function(result){
+    }).done(function(result) {
         statusLabels(result["server_status"]);
 
-         if (JSON.stringify(result['search_area']) !== JSON.stringify(searchLocation)) {
-            searchLocation = result['search_area'];
+        updateScanLocations(result['scan_locations']);
 
-            if (currentLocationMarker) currentLocationMarker.setMap(null);
-            currentLocationMarker = new google.maps.Marker({
-                position: searchLocation,
-                map: map,
-                animation: google.maps.Animation.DROP
-            });
-
-            if (coverCircle) {
-                coverCircle.setCenter(searchLocation);
-                coverCircle.setRadius(searchLocation['radius']);
-            } else {
-                coverCircle = new google.maps.Circle({
-                    strokeColor: '#FF0000',
-                    strokeOpacity: 0.6,
-                    strokeWeight: 1,
-                    fillColor: '#FF0000',
-                    fillOpacity: 0.08,
-                    clickable: false,
-                    map: map,
-                    center: searchLocation,
-                    radius: searchLocation['radius']
-                });
-                coverCircle.setVisible(document.getElementById('coverage-checkbox').checked);
-            }
-        }
-
-       $.each(result.pokemons, function(i, item){
+        $.each(result.pokemons, function(i, item){
             if (!document.getElementById('pokemon-checkbox').checked) {
                 return false; // in case the checkbox was unchecked in the meantime.
             }
@@ -343,41 +431,39 @@ $('#pokemon-checkbox').change(function() {
 
 $('#coverage-checkbox').change(function() {
     localStorage.displayCoverage = this.checked;
-    coverCircle.setVisible(this.checked);    
+    // TODO: Set cover circles invisible
 });
 
-var coverCircles = [];
-/*
-function displayCoverage() {
-    if (currentLocationMarker) currentLocationMarker.setMap(null);
 
-    $.each(coverCircles, function(i, circle) {
-        circle.setMap(null);
-    });
+// function displayCoverage() {
+//     // if (currentLocationMarker) currentLocationMarker.setMap(null);
 
-    $.getJSON("cover", {format: "json"}).done(function(data) {
-        currentLocationMarker = new google.maps.Marker({
-            position: {lat: data['center']['lat'], lng: data['center']['lng']},
-            map: map,
-            animation: google.maps.Animation.DROP
-        });
+//     $.each(coverCircles, function(i, circle) {
+//         circle.setMap(null);
+//     });
 
-        $.each(data['cover'], function(i, point) {
-            coverCircles.push(new google.maps.Circle({
-                strokeColor: '#FF0000',
-                strokeOpacity: 0.6,
-                strokeWeight: 1,
-                fillColor: '#FF0000',
-                fillOpacity: 0.08,
-                clickable: false,
-                map: map,
-                center: point,
-                radius: 100
-            }));
-        });
-    });
-}
-*/
+//     $.getJSON("cover", {format: "json"}).done(function(data) {
+//         // currentLocationMarker = new google.maps.Marker({
+//         //     position: {lat: data['center']['lat'], lng: data['center']['lng']},
+//         //     map: map,
+//         //     animation: google.maps.Animation.DROP
+//         // });
+
+//         $.each(data['cover'], function(i, point) {
+//             coverCircles.push(new google.maps.Circle({
+//                 strokeColor: '#FF0000',
+//                 strokeOpacity: 0.6,
+//                 strokeWeight: 1,
+//                 fillColor: '#FF0000',
+//                 fillOpacity: 0.08,
+//                 clickable: false,
+//                 map: map,
+//                 center: point,
+//                 radius: 70
+//             }));
+//         });
+//     });
+// }
 
 function statusLabels(status) {
     if (status['login_time'] == 0) {
