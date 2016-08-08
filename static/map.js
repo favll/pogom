@@ -1,6 +1,7 @@
 "use strict"
 
-var $loginStatus = $(".login-status");
+var $numThreads = $(".num-threads");
+var $numAccounts = $(".num-accounts");
 var $lastRequestLabel = $(".last-request");
 var $fullScanLabel = $(".full-scan");
 
@@ -487,15 +488,8 @@ $('#coverage-checkbox').change(function() {
 // }
 
 function statusLabels(status) {
-    if (status['login_time'] == 0) {
-        $loginStatus.html('Login failed');
-        $loginStatus.removeClass('label-success label-warning');
-        $loginStatus.addClass('label-danger');
-    } else {
-        $loginStatus.html('Logged in');
-        $loginStatus.removeClass('label-danger label-warning');
-        $loginStatus.addClass('label-success');
-    }
+    $numThreads.html(status['num-threads'] + " Threads");
+    $numAccounts.html(status['num-accounts'] + " Accounts");
 
     var difference = status['last-successful-request'];
 

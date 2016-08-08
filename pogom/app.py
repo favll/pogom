@@ -148,7 +148,8 @@ class Pogom(Flask):
         else:
             time_since_last_req = time.time() - ScanMetrics.LAST_SUCCESSFUL_REQUEST
 
-        d['server_status'] = {'login_time': ScanMetrics.LOGGED_IN,
+        d['server_status'] = {'num-threads': ScanMetrics.NUM_THREADS,
+                              'num-accounts': ScanMetrics.NUM_ACCOUNTS,
                               'last-successful-request': time_since_last_req,
                               'complete-scan-time': ScanMetrics.COMPLETE_SCAN_TIME}
 

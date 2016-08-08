@@ -31,6 +31,8 @@ class ScanMetrics:
     LOGGED_IN = 0.0
     LAST_SUCCESSFUL_REQUEST = 0.0
     COMPLETE_SCAN_TIME = 0
+    NUM_THREADS = 0
+    NUM_ACCOUNTS = 0
 
 
 class Scanner(Thread):
@@ -106,6 +108,9 @@ class Scanner(Thread):
                     num_workers = max(int(math.ceil(len(config['ACCOUNTS']) / 23.0)), 3)
                     self.api.resize_workers(num_workers)
                     self.api.add_accounts(config['ACCOUNTS'])
+
+                    ScanMetrics.NUM_THREADS = num_workers
+                    ScanMetrics.NUM_ACCOUNTS = len(config['ACCOUNTS'])
 
             if (not self.scan_config.SCAN_LOCATIONS or
                     not config.get('ACCOUNTS', None)):
