@@ -38,6 +38,4 @@ Heavily using [pgoapi](https://github.com/keyphact/pgoapi). Shout-out to the Unk
 ##TODO
 - **Notifications**
 - Show/Hide Pokestops
-- Move processing of responses (protobuf parsing & save to DB) to seperate process
-- Use different (faster) library for protobuf parsing
 - Heatmaps!
