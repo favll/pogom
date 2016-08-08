@@ -72,6 +72,15 @@ function readCookie(name) {
     return null;
 }
 
+function is_logged_in(){
+    if ($(".auth-status")[0].classList.contains("label-success")) {
+        return true
+    } else {
+        return false
+    }
+}
+
+
 function initMap() {
     var initLat = 40.782850;  // NYC Central Park
     var initLng = -73.965288;
@@ -93,7 +102,7 @@ function initMap() {
     updateScanLocations(initialScanLocations);
     updateMap();
 
-    if(readCookie("auth") !== null) {
+    if(is_logged_in()) {
         // on click listener for
         google.maps.event.addListener(map, 'click', function(event) {
             if (newLocationMarker) {
@@ -267,7 +276,7 @@ function newMarker(latitude, longitude) {
     });
 
     // This is soooo ugly...
-    if (readCookie("auth") !== null) {
+    if (is_logged_in()) {
         var latStr = latitude.toString().replace('.', '');
         var lngStr = longitude.toString().replace('.', '');
         var buttonId = "del-loc-btn-" + latStr + lngStr;

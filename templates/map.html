@@ -202,8 +202,13 @@ span.select2 { width: 100% !important; }
                 <div id="menu-container">
                     <h1>Settings</h1>
                     <p>
-                        <span class='login-status label label-warning' style="display: none;">Not authenticated</span>
-                        <span class='last-request label label-warning'>No scans yet</span> <br />
+                        {% if is_authenticated %}
+                            <span class='auth-status label label-success'>Authenticated</span>
+                        {% else %}
+                            <span class='auth-status label label-warning'><a href="login" style="color: white; text-decoration: inherit;">Not authenticated</a></span>
+                        {% endif %}
+                        <br />
+                        <span class='last-request label label-warning'>No scans yet</span>
                         <span class='full-scan label label-grey'>No full scan yet</span>
                     </p>
 
@@ -242,6 +247,7 @@ span.select2 { width: 100% !important; }
                     </p>
 
                     <p>
+                        <a href="config">Server Configuration</a> <br />
                         <a href="stats">View Stats</a>
                     </p>
 

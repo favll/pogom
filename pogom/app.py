@@ -38,6 +38,12 @@ class Pogom(Flask):
         self.route('/config', methods=['POST'])(self.post_config_site)
         self.route('/login', methods=['GET', 'POST'])(self.login)
 
+    def is_authenticated(self):
+        if config.get('CONFIG_PASSWORD', None) and not request.cookies.get("auth") == config['AUTH_KEY']:
+            return False
+        else:
+            return True
+    
     def fullmap(self):
         # if 'search_thread' not in [t.name for t in threading.enumerate()]:
         if (not config.get('GOOGLEMAPS_KEY', None) or
@@ -46,12 +52,13 @@ class Pogom(Flask):
 
         return render_template('map.html',
                                scan_locations=json.dumps(self.scan_config.SCAN_LOCATIONS.values()),
-                               gmaps_key=config['GOOGLEMAPS_KEY'])
+                               gmaps_key=config['GOOGLEMAPS_KEY'],
+                               is_authenticated=self.is_authenticated())
 
     def login(self):
-        if not config.get('CONFIG_PASSWORD', None):
+        if self.is_authenticated():
             return redirect(url_for('get_config_site'))
-
+        
         if request.method == "GET":
             return render_template('login.html')
 
@@ -61,7 +68,7 @@ class Pogom(Flask):
             return resp
 
     def get_config_site(self):
-        if config.get('CONFIG_PASSWORD', None) and not request.cookies.get("auth") == config['AUTH_KEY']:
+        if not self.is_authenticated():
             return redirect(url_for('login'))
 
         return render_template(
@@ -71,7 +78,7 @@ class Pogom(Flask):
             password=config.get('CONFIG_PASSWORD', None))
 
     def post_config_site(self):
-        if config.get('CONFIG_PASSWORD', None) and not request.cookies.get("auth") == config['AUTH_KEY']:
+        if not self.is_authenticated():
             return redirect(url_for('login'))
 
         config['GOOGLEMAPS_KEY'] = request.form.get('gmapsKey', '')
@@ -115,6 +122,9 @@ class Pogom(Flask):
         return resp
 
     def save_config(self):
+        if not self.is_authenticated():
+            return redirect(url_for('login'))
+
         if (config['CONFIG_PATH'] is not None and
                 os.path.isfile(config['CONFIG_PATH'])):
             config_path = config['CONFIG_PATH']
@@ -162,7 +172,7 @@ class Pogom(Flask):
                         'scan_locations': self.scan_config.SCAN_LOCATIONS.values()})
 
     def add_location(self):
-        if config.get('CONFIG_PASSWORD', None) and not request.cookies.get("auth") == config['AUTH_KEY']:
+        if not self.is_authenticated():
             return redirect(url_for('login'))
 
         lat = request.values.get('lat', type=float)
@@ -178,7 +188,7 @@ class Pogom(Flask):
         return ('', 204)
 
     def delete_location(self):
-        if config.get('CONFIG_PASSWORD', None) and not request.cookies.get("auth") == config['AUTH_KEY']:
+        if not self.is_authenticated():
             return redirect(url_for('login'))
 
         lat = request.values.get('lat', type=float)
