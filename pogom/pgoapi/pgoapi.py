@@ -65,6 +65,39 @@ class PGoApi:
             worker.start()
             self._workers.append(worker)
 
+    def resize_workers(self, num_workers):
+        workers_now = len(self._workers)
+        if workers_now < num_workers:
+            self.create_workers(num_workers - workers_now)
+        elif workers_now > num_workers:
+            for i in xrange(workers_now - num_workers):
+                worker = self._workers.pop()
+                worker.stop()
+
+    def set_accounts(self, accounts):
+        old_accounts = []
+        new_accounts = []
+
+        accounts_todo = {}
+        for account in accounts:
+            accounts_todo[account['username']] = accounts['password']
+
+        while not self._auth_queue.empty():
+            # Go through accounts in auth queue and only add those back
+            # that we still want to use
+            next_call, auth_provider = self._auth_queue.get()
+            if auth_provider.username in accounts_todo:
+                old_accounts.append((next_call, auth_provider))
+                del accounts_todo[auth_provider.username]
+
+        while old_accounts:
+            self._auth_queue.put(old_accounts.pop())
+
+        # Add new accounts
+        for username, password in accounts_todo.iteritems():
+            new_accounts.append({'username': username, 'password': password})
+        add_accounts(new_accounts)
+
     def add_accounts(self, accounts):
         for account in accounts:
             username, password = account['username'], account['password']
@@ -121,6 +154,9 @@ class PGoApi:
             except Queue.Empty:
                 return
 
+    def is_work_queue_empty(self):
+        return self._work_queue.empty()
+
     def wait_until_done(self):
         self._work_queue.join()
 
@@ -133,6 +169,7 @@ class PGoApiWorker(Thread):
     def __init__(self, signature_lib_path, work_queue, auth_queue):
         Thread.__init__(self)
         self.log = logging.getLogger(__name__)
+        self._running = True
 
         self._work_queue = work_queue
         self._auth_queue = auth_queue
@@ -149,12 +186,22 @@ class PGoApiWorker(Thread):
                 # Sleep until the auth provider is ready
                 if (time.time() < next_call):  # Kind of a side effect -> bad
                     time.sleep(max(next_call - time.time(), 0))
-                return auth_provider
+                return (next_call, auth_provider)
 
     def run(self):
-        while True:
+        while self._running:
             method, position, callback = self._work_queue.get()
-            auth_provider = self._get_auth_provider()
+            if not self._running:
+                self._work_queue.put((method, position, callback))
+                self._work_queue.task_done()
+                continue
+
+            next_call, auth_provider = self._get_auth_provider()
+            if not self._running:
+                self._auth_queue.put((next_call, auth_provider))
+                self._work_queue.put((method, position, callback))
+                self._work_queue.task_done()
+                continue
 
             # Let's do this.
             self.rpc_api._auth_provider = auth_provider
@@ -178,6 +225,9 @@ class PGoApiWorker(Thread):
             self.rpc_api._auth_provider = None
             self._auth_queue.put((next_call, auth_provider))
             callback(response)
+
+    def stop(self):
+        self._running = False
 
     def call(self, auth_provider, req_method_list, position):
         if not req_method_list:

@@ -33,7 +33,7 @@ def read_config(scan_config):
 
     config['GOOGLEMAPS_KEY'] = c.get('GOOGLEMAPS_KEY', None)
     config['CONFIG_PASSWORD'] = c.get('CONFIG_PASSWORD', None)
-    config['ACCOUNTS'] = c.get('ACCOUNTS', None)
+    config['ACCOUNTS'] = c.get('ACCOUNTS', [])
     scan_config.update_scan_locations(c.get('SCAN_LOCATIONS', {}))
 
     if config.get('CONFIG_PASSWORD', None):
@@ -67,12 +67,8 @@ if __name__ == '__main__':
     read_config(scan_config)
     config['SIGNATURE_LIB_PATH'] = get_encryption_lib_path()
 
-    if (config.get('ACCOUNTS', None) and
-            config.get('GOOGLEMAPS_KEY', None) and
-            scan_config.SCAN_LOCATIONS):
-
-        scanner = Scanner(scan_config)
-        scanner.start()
+    scanner = Scanner(scan_config)
+    scanner.start()
 
     app = Pogom(scan_config, __name__)
     config['ROOT_PATH'] = app.root_path

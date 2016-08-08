@@ -1,9 +1,13 @@
 // Remove this comment, copy the file to config.json and enter your data 
 {
-	"GOOGLEMAPS_KEY": "ENTER_KEY_HERE",
-	"CONFIG_PASSWORD": "LONG_PASSWORD",
-	"ACCOUNTS": [
-		{ "username": "USERNAME_1", "password": "PASSWORD_1" },
-		{ "username": "USERNAME_2", "password": "PASSWORD_2" }
-	]
+    "GOOGLEMAPS_KEY": "ENTER_KEY_HERE",
+    "CONFIG_PASSWORD": "LONG_PASSWORD",
+    "ACCOUNTS": [
+        { "username": "USERNAME_1", "password": "PASSWORD_1" },
+        { "username": "USERNAME_2", "password": "PASSWORD_2" }
+    ],
+    "SCAN_LOCATIONS": [
+        { "location": "Central Park, New York City", "radius": 1500 },
+        { "location": "Empire State Building, 5th Avenue, New York City", "radius": 1000 }
+    ]
 }

@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 class ScanMetrics:
     CONSECUTIVE_MAP_FAILS = 0
     STEPS_COMPLETED = 0
-    NUM_STEPS = 0
+    NUM_STEPS = 1
     LOGGED_IN = 0.0
     LAST_SUCCESSFUL_REQUEST = 0.0
     COMPLETE_SCAN_TIME = 0
@@ -87,21 +87,28 @@ class Scanner(Thread):
                 position=next_pos,
                 callback=Scanner.callback)
 
+        while not self.api.is_work_queue_empty():
             # Location change
-            if self.scan_config.CHANGE:
-                log.info("Changing scan location")
-                self.scan_config.CHANGE = False
-                self.api.empty_queue()
+            if self.scan_config.RESTART:
+                log.info("Restarting scan")
+                self.api.empty_work_queue()
+            else:
+                time.sleep(2)
 
-        self.api.wait_until_done()
+        self.api.wait_until_done()  # Work queue empty != work done
 
     def run(self):
-        num_workers = min(int(math.ceil(len(config['ACCOUNTS']) / 23.0)), 3)
-        self.api.create_workers(num_workers)
-        self.api.add_accounts(config['ACCOUNTS'])
-
         while True:
-            if not self.scan_config.SCAN_LOCATIONS:
+            if self.scan_config.RESTART:
+                self.scan_config.RESTART = False
+                if self.scan_config.ACCOUNTS_CHANGED:
+                    self.scan_config.ACCOUNTS_CHANGED = False
+                    num_workers = min(int(math.ceil(len(config['ACCOUNTS']) / 23.0)), 3)
+                    self.api.resize_workers(num_workers)
+                    self.api.add_accounts(config['ACCOUNTS'])
+
+            if (not self.scan_config.SCAN_LOCATIONS or
+                    not config.get('ACCOUNTS', None)):
                 time.sleep(5)
                 continue
             ScanMetrics.STEPS_COMPLETED = 0
@@ -114,20 +121,23 @@ class ScanConfig(object):
     SCAN_LOCATIONS = {}
     COVER = None
 
-    CHANGE = False  # Triggered when the setup is changed due to user input
+    RESTART = True  # Triggered when the setup is changed due to user input
+    ACCOUNTS_CHANGED = True
 
     def update_scan_locations(self, scan_locations):
         location_names = set([])
         # Add new locations
         for scan_location in scan_locations:
-
             if scan_location['location'] not in self.SCAN_LOCATIONS:
-                lat, lng, alt = get_pos_by_name(scan_location['location'])
-                log.info('Parsed location is: {:.4f}/{:.4f}/{:.4f} '
-                         '(lat/lng/alt)'.format(lat, lng, alt))
-                scan_location['latitude'] = lat
-                scan_location['longitude'] = lng
-                scan_location['altitude'] = alt
+                if ('latitude' not in scan_location or
+                        'longitude' not in scan_location or
+                        'altitude' not in scan_location):
+                    lat, lng, alt = get_pos_by_name(scan_location['location'])
+                    log.info('Parsed location is: {:.4f}/{:.4f}/{:.4f} '
+                             '(lat/lng/alt)'.format(lat, lng, alt))
+                    scan_location['latitude'] = lat
+                    scan_location['longitude'] = lng
+                    scan_location['altitude'] = alt
                 self.SCAN_LOCATIONS[scan_location['location']] = scan_location
             location_names.add(scan_location['location'])
 

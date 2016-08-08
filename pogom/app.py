@@ -39,7 +39,9 @@ class Pogom(Flask):
         self.route('/login', methods=['GET', 'POST'])(self.login)
 
     def fullmap(self):
-        if 'search_thread' not in [t.name for t in threading.enumerate()]:
+        # if 'search_thread' not in [t.name for t in threading.enumerate()]:
+        if (not config.get('GOOGLEMAPS_KEY', None) or
+                not config.get('ACCOUNTS', None)):
             return redirect(url_for('get_config_site'))
 
         return render_template('map.html',
@@ -75,11 +77,17 @@ class Pogom(Flask):
         config['GOOGLEMAPS_KEY'] = request.form.get('gmapsKey', '')
 
         pw = request.form.get('configPassword', None)
-        if not pw == config.get('CONFIG_PASSWORD', None):
+        pw_changed = (pw != config.get('CONFIG_PASSWORD', None))
+        if pw_changed:
             config['CONFIG_PASSWORD'] = pw
             config['AUTH_KEY'] = ''.join(random.choice(string.lowercase) for _ in range(32))
 
         accounts_str = request.form.get('accounts', None)
+
+        usernames_before = set([])
+        for account in config.get('ACCOUNTS', []):
+            usernames_before.add(account['username'])
+
         usernames = set([])
         accounts_parsed = []
         if accounts_str:
@@ -90,16 +98,21 @@ class Pogom(Flask):
                     usernames.add(a[0].strip())
 
         config['ACCOUNTS'] = accounts_parsed
+        self.scan_config.ACCOUNTS_CHANGED = (usernames_before != usernames)
         self.save_config()
 
-        # TODO: Restart scanner
+        self.scan_config.RESTART = True
 
-        return render_template(
+        resp = make_response(render_template(
             'config.html',
             gmaps_key=config.get('GOOGLEMAPS_KEY', None),
             accounts=config.get('ACCOUNTS', []),
             password=config.get('CONFIG_PASSWORD', None),
-            alert=True)
+            alert=True))
+        if pw_changed:
+            resp.set_cookie('auth', config['AUTH_KEY'])
+
+        return resp
 
     def save_config(self):
         if (config['CONFIG_PATH'] is not None and
