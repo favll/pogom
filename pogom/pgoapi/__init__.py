@@ -37,7 +37,7 @@ __license__ = 'MIT License'
 __copyright__ = 'Copyright (c) 2016 tjado <https://github.com/tejado>'
 
 protobuf_exist = False
-protobuf_version = 0
+protobuf_version = "0"
 try:
     protobuf_version = pkg_resources.get_distribution("protobuf").version
     protobuf_exist = True
