@@ -356,13 +356,13 @@ function updateScanLocations(updatedScanLocations) {
     });
 }
 
+//               'pokestops': document.getElementById('pokestops-checkbox').checked,
+//               'pokestops-lured': document.getElementById('pokestops-lured-checkbox').checked,
 function updateMap() {
     $.ajax({
         url: "map-data",
         type: 'GET',
         data: {'pokemon': localStorage.displayPokemons,
-               'pokestops': document.getElementById('pokestops-checkbox').checked,
-               'pokestops-lured': document.getElementById('pokestops-lured-checkbox').checked,
                'gyms': localStorage.displayGyms},
         dataType: "json"
     }).done(function(result) {
