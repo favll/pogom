@@ -17,12 +17,13 @@ Heavily using [pgoapi](https://github.com/keyphact/pgoapi). Shout-out to the Unk
 
 ##Usage
 
- - Visit `http://<ip>:<port>/` (by default: `http://127.0.0.1:5000/`
+ - Visit `http://<ip>:<port>/` (by default: `http://127.0.0.1:5000/`)
  - On the first run you will be redirected to a configuration page
    - Enter your Google Maps Api Key
-   - Enter all your accounts to be used for scanning
+   - Enter all accounts and passwords to be used for scanning
    - Optionally protect the configuration with a password (only authenticated users can access the config and change scan locations)
- - Go back to `http://<ip>:<port>/` to view the map. Add scan locations simply by clicking on the map.
+ - Go back to `http://<ip>:<port>/` to view the map
+ - Add scan locations simply by clicking on the map
 
 ##Features
 - [x] Extremely fast (using multiple accounts)
