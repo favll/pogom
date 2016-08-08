@@ -8,6 +8,7 @@ from peewee import Model, SqliteDatabase, InsertQuery, IntegerField, \
     CharField, FloatField, BooleanField, DateTimeField, fn, SQL
 from datetime import datetime
 from base64 import b64encode
+import threading
 
 from .utils import get_pokemon_name
 
@@ -17,6 +18,7 @@ db = SqliteDatabase('pogom.db', pragmas=(
     ('mmap_size', 1024 * 1024 * 32),
 ))
 log = logging.getLogger(__name__)
+lock = threading.Lock()
 
 
 class BaseModel(Model):
@@ -171,8 +173,8 @@ def parse_map(map_dict):
                     'last_modified': datetime.utcfromtimestamp(
                             f['last_modified_timestamp_ms'] / 1000.0),
                 }
-
-    with db.atomic():
+                
+    with db.atomic() and lock:
         if pokemons:
             log.info("Upserting {} pokemon".format(len(pokemons)))
             bulk_upsert(Pokemon, pokemons)
