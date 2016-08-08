@@ -3,26 +3,41 @@
 
 import logging
 import sys
+import json
+import random
+import string
+import os
 from threading import Thread
 
 from pogom import config
 from pogom.app import Pogom
 from pogom.models import create_tables
-from pogom.search import search_loop, set_cover, set_location, search_loop_async
-from pogom.utils import get_args
+from pogom.scan import Scanner, ScanConfig
+from pogom.utils import get_args, get_encryption_lib_path
 
 log = logging.getLogger(__name__)
 
 
-def start_locator_thread(args):
-    if args.pycurl:
-        search_thread = Thread(target=search_loop_async, args=(args,))
-    else:
-        search_thread = Thread(target=search_loop, args=(args,))
+def read_config(scan_config):
+    config_path = os.path.join(
+        os.path.dirname(os.path.realpath(sys.argv[0])), "config.json")
 
-    search_thread.daemon = True
-    search_thread.name = 'search_thread'
-    search_thread.start()
+    if os.path.isfile(config_path):
+        config['CONFIG_PATH'] = config_path
+
+    try:
+        with open(config_path, "r") as f:
+            c = json.loads(f.read())
+    except:
+        c = {}
+
+    config['GOOGLEMAPS_KEY'] = c.get('GOOGLEMAPS_KEY', None)
+    config['CONFIG_PASSWORD'] = c.get('CONFIG_PASSWORD', None)
+    config['ACCOUNTS'] = c.get('ACCOUNTS', [])
+    scan_config.update_scan_locations(c.get('SCAN_LOCATIONS', {}))
+
+    if config.get('CONFIG_PASSWORD', None):
+        config['AUTH_KEY'] = ''.join(random.choice(string.lowercase) for _ in range(32))
 
 
 if __name__ == '__main__':
@@ -48,12 +63,13 @@ if __name__ == '__main__':
         logging.getLogger("werkzeug").setLevel(logging.INFO)
 
     create_tables()
+    scan_config = ScanConfig()
+    read_config(scan_config)
+    config['SIGNATURE_LIB_PATH'] = get_encryption_lib_path()
 
-    set_location(args.location, args.radius)
-    set_cover()
+    scanner = Scanner(scan_config)
+    scanner.start()
 
-    start_locator_thread(args)
-
-    app = Pogom(__name__)
+    app = Pogom(scan_config, __name__)
     config['ROOT_PATH'] = app.root_path
     app.run(threaded=True, debug=args.debug, host=args.host, port=args.port)

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pokémon Go Map - Config</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="static/favicon.ico">
+    <style>
+        .table > tbody > tr > td {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<div class="container col-md-6 col-md-offset-3">
+    <h1>PoGoMap Config</h1>
+    {% if alert %}
+    <div class="alert alert-success" role="alert" id="alert-success" style="">Success! Config has been changed.</div>
+    {% endif %}
+    <form method="POST" action="config">
+      <div class="form-group">
+        <label for="gmapsKey">GMaps API Key</label>
+        <input class="form-control" id="gmapsKey" name="gmapsKey" placeholder="GMaps Key" value="{{ gmaps_key or ''}}">
+        <span id="gmapsKeyHelp" class="help-block">Get it from your <a href="https://console.developers.google.com/" target="_blank">Google Developer Console</a>.</span>
+      </div>
+      <div class="form-group">
+        <label for="accounts">PTC Accounts</label>
+        <textarea class="form-control" rows="8" id="accounts" name="accounts" placeholder="username1:password1
+username2:password2">
+{% for account in accounts %}{{ account['username'] }}:{{ account['password'] }}
+{% endfor %}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="configPassword">Config Password</label>
+        <input type="password" class="form-control" id="configPassword" name="configPassword" value="{{ password or ''}}">
+        <span id="configPasswordHelp" class="help-block">Protect this config with a password.</span>
+      </div>
+      <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+</div>
+
+</body>
+</html>

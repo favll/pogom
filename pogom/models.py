@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import random
+import math
 from peewee import Model, SqliteDatabase, InsertQuery, IntegerField, \
     CharField, FloatField, BooleanField, DateTimeField, fn, SQL
 from datetime import datetime
@@ -15,19 +17,6 @@ db = SqliteDatabase('pogom.db', pragmas=(
     ('mmap_size', 1024 * 1024 * 32),
 ))
 log = logging.getLogger(__name__)
-
-
-class SearchConfig(object):
-    ORIGINAL_LATITUDE = None
-    ORIGINAL_LONGITUDE = None
-    COVER = None
-    RADIUS = None
-
-    CHANGE = False  # Triggered when the setup is changed due to user input
-
-    LOGGED_IN = 0.0
-    LAST_SUCCESSFUL_REQUEST = 0.0
-    COMPLETE_SCAN_TIME = 0
 
 
 class BaseModel(Model):
@@ -71,9 +60,15 @@ class Pokemon(BaseModel):
                  .order_by(-SQL('count'))
                  .dicts())
 
-        for p in query:
+        pokemons = list(query)
+
+        known_pokemon = set( p['pokemon_id'] for p in query )
+        unknown_pokemon = set(range(1,151)).difference(known_pokemon)
+        pokemons.extend( { 'pokemon_id': i, 'count': 0 } for i in unknown_pokemon)
+
+        for p in pokemons:
             p['pokemon_name'] = get_pokemon_name(p['pokemon_id'])
-        return query
+        return pokemons
 
 
 class Pokestop(BaseModel):
@@ -115,7 +110,7 @@ def parse_map(map_dict):
 
             pokemons[p['encounter_id']] = {
                 'encounter_id': b64encode(str(p['encounter_id'])),
-                'spawnpoint_id': p['spawnpoint_id'],
+                'spawnpoint_id': p['spawn_point_id'],
                 'pokemon_id': p['pokemon_data']['pokemon_id'],
                 'latitude': p['latitude'],
                 'longitude': p['longitude'],
@@ -132,7 +127,7 @@ def parse_map(map_dict):
 
             pokemons[p['encounter_id']] = {
                 'encounter_id': b64encode(str(p['encounter_id'])),
-                'spawnpoint_id': p['spawnpoint_id'],
+                'spawnpoint_id': p['spawn_point_id'],
                 'pokemon_id': p['pokemon_data']['pokemon_id'],
                 'latitude': p['latitude'],
                 'longitude': p['longitude'],
