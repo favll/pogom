@@ -129,12 +129,12 @@ class PGoApi:
 
             if kwargs:
                 method = {RequestType.Value(name): kwargs}
-                self.log.info(
+                self.log.debug(
                    "Adding '%s' to RPC request including arguments", name)
                 self.log.debug("Arguments of '%s': \n\r%s", name, kwargs)
             else:
                 method = RequestType.Value(name)
-                self.log.info("Adding '%s' to RPC request", name)
+                self.log.debug("Adding '%s' to RPC request", name)
 
             self.call_method(method, position, callback)
 
@@ -237,7 +237,7 @@ class PGoApiWorker(Thread):
         if (lat is None) or (lng is None) or (alt is None):
             raise NoPlayerPositionSetException()
 
-        self.log.info('Execution of RPC')
+        self.log.debug('Execution of RPC')
         response = None
 
         again = True  # Status code 53 or not logged in?
@@ -277,7 +277,7 @@ class PGoApiWorker(Thread):
         return response
 
     def _login(self, auth_provider, position):
-        self.log.info('Attempting login')
+        self.log.info('Attempting login: {}'.format(auth_provider.username))
         consecutive_fails = 0
 
         while not auth_provider.user_login():
@@ -288,7 +288,7 @@ class PGoApiWorker(Thread):
             if consecutive_fails == 5:
                 raise AuthException('Login failed five times.')
 
-        self.log.info('Login successful')
+        self.log.info('Login successful: {}'.format(auth_provider.username))
 
     def _login_if_necessary(self, auth_provider, position):
         if auth_provider._ticket_expire:
