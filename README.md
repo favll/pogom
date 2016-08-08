@@ -6,7 +6,7 @@ Heavily using [pgoapi](https://github.com/keyphact/pgoapi). Shout-out to the Unk
 ![image](https://cloud.githubusercontent.com/assets/1723176/17143769/c5db3a80-5354-11e6-85d9-ba664e293cfc.png)
 
 ##Installation:
--
+
 **Note:** If you are upgrading from the last version, you will have to update and/or reinstall the requirements.
 
 1. Clone the repository `git clone https://github.com/favll/pogom.git`
