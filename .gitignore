@@ -7,10 +7,8 @@ stortebrokr/iospush.pem
 ###################
 *.com
 *.class
-*.dll
 *.exe
 *.o
-*.so
 *.pyc
 
 # Virtual Environment #
