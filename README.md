@@ -31,11 +31,11 @@ There's no other flags besides  `-H` and `-P`, everything else is configured thr
 - [x] Extremely fast (using multiple accounts)
 - [x] Multiple locations
 - [x] Perfect coverage (using a perfect hexagonal grid of radius 70m)
+- [x] Everything configurable from the browser (bye bye command-line flags)
 - [x] Hide common Pokemon
 - [x] Server status in the Web-GUI
 - [x] Stats about seen Pokemon
 - [x] Mobile friendly
-- [x] User-friendly configuration Web-GUI
 
 ##TODO
 - **Notifications**
