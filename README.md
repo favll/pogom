@@ -6,7 +6,7 @@ Heavily using [pgoapi](https://github.com/keyphact/pgoapi). Shout-out to the Unk
 ![image](https://cloud.githubusercontent.com/assets/1723176/17143769/c5db3a80-5354-11e6-85d9-ba664e293cfc.png)
 
 ##Installation:
--
+
 **Note:** If you are upgrading from the last version, you will have to update and/or reinstall the requirements.
 
 1. Clone the repository `git clone https://github.com/favll/pogom.git`
@@ -17,9 +17,13 @@ Heavily using [pgoapi](https://github.com/keyphact/pgoapi). Shout-out to the Unk
 
 ##Usage
 
-Before you can use the map you will have to configure it. Pogom provides a configuration web interface. The first time you start the server and visit `http://<ip>:<port>/` the server will redirect you to the config page. There you can enter your Google Maps Api key, the accounts used for scanning (**Note:** never use your real account for scanning) and set a password to protect the config. The configuration is saved server-side so you do not have to worry about entering these settings every time you restart the server. You can still edit the settings if you visit `http://<ip>:<port>/config`.
-
-After the server has been started and you completed the configuration you can go back to `http://<ip>:<port>/` again where you can start adding scan locations simply by clicking on the map. **Note:** If you can't add locations by clicking on the map try going back to `http://<ip>:<port>/` and reauthenticate by entering the configuration password.
+ - Visit `http://<ip>:<port>/` (by default: `http://127.0.0.1:5000/`)
+ - On the first run you will be redirected to a configuration page
+   - Enter your Google Maps Api Key
+   - Enter all accounts and passwords to be used for scanning
+   - Optionally protect the configuration with a password (only authenticated users can access the config and change scan locations)
+ - Go back to `http://<ip>:<port>/` to view the map
+ - Add scan locations simply by clicking on the map
 
 ##Features
 - [x] Extremely fast (using multiple accounts)
@@ -29,10 +33,9 @@ After the server has been started and you completed the configuration you can go
 - [x] Server status in the Web-GUI
 - [x] Stats about seen Pokemon
 - [x] Mobile friendly
+- [x] User-friendly configuration Web-GUI
 
 ##TODO
 - **Notifications**
 - Show/Hide Pokestops
-- Move processing of responses (protobuf parsing & save to DB) to seperate process
-- Use different (faster) library for protobuf parsing
 - Heatmaps!
