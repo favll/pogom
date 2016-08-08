@@ -15,6 +15,8 @@ Heavily using [pgoapi](https://github.com/keyphact/pgoapi). Shout-out to the Unk
 
 **Pro-Tip:** Use the `-H` and `-P` flag to specify host and port. E.g. `-H "127.0.0.1" -P 5001` will tell the webserver to listen to localhost requests on port 5001. You can then head over and take a look at the map at `http://127.0.0.1:5001/`. If you want the server to listen on all public IPs use the host `0.0.0.0`. This will allow you to access your server from other machines.
 
+There's no other flags besides  `-H` and `-P`, everything else is configured through the Web UI.
+
 ##Usage
 
  - Visit `http://<ip>:<port>/` (by default: `http://127.0.0.1:5000/`)
