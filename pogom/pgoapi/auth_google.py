@@ -92,6 +92,7 @@ class AuthGoogle(Auth):
 
                 self.log.info('Google Access Token successfully received.')
                 self.log.debug('Google Access Token: %s...', self._access_token[:25])
+                return self._access_token
             else:
                 self._access_token = None
                 self._login = False
