@@ -112,8 +112,8 @@ class RpcApi:
 
         request_proto_serialized = request_proto_plain.SerializeToString()
         try:
-            http_response = self._session.post(endpoint, data=request_proto_serialized)
-        except requests.exceptions.ConnectionError as e:
+            http_response = self._session.post(endpoint, data=request_proto_serialized, timeout=10)
+        except Exception as e:
             raise ServerBusyOrOfflineException(e)
 
         return http_response
