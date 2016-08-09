@@ -82,6 +82,32 @@ function is_logged_in(){
     }
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+  if (!Notification) {
+    alert('Desktop notifications not available in your browser. Try Chromium.'); 
+    return;
+  }
+
+  if (Notification.permission !== "granted")
+    Notification.requestPermission();
+});
+
+function notifyChrome(title, icon, text) {
+  if (Notification.permission !== "granted")
+    Notification.requestPermission();
+  else {
+    var notification = new Notification(title, {
+      icon: icon,
+      body: text,
+    });
+
+    notification.onclick = function () {
+      window.open("http://127.0.0.1:5000");      
+    };
+
+  }
+
+}
 
 function initMap() {
     var initLat = 40.782850;  // NYC Central Park
@@ -223,12 +249,17 @@ function setupPokemonMarker(item) {
         icon: myIcon
     });
 
+    var label = pokemonLabel(item.pokemon_name, item.pokemon_id, item.disappear_time, item.latitude, item.longitude);
+
     marker.infoWindow = new google.maps.InfoWindow({
-        content: pokemonLabel(item.pokemon_name, item.pokemon_id, item.disappear_time, item.latitude, item.longitude),
+        content: label,
         disableAutoPan: true
     });
 
     addListeners(marker);
+
+    notifyChrome('A wild '+item.pokemon_name+' has appeared', window.location.origin+ '/static/icons/'+item.pokemon_id+'.png', 'Disappears in ' + formatTimeDiff((item.disappear_time - Date.now())/1000));
+
     return marker;
 }
 
