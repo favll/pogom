@@ -123,6 +123,9 @@ def parse_map(map_dict):
                         (p['last_modified_timestamp_ms'] +
                          p['time_till_hidden_ms']) / 1000.0)
             }
+            if p['time_till_hidden_ms'] < 0:
+                pokemons[p['encounter_id']]['disappear_time'] = datetime.utcfromtimestamp(
+                        p['last_modified_timestamp_ms']/1000 + 15*60)
 
         for p in cell.get('catchable_pokemons', []):
             if p['encounter_id'] in pokemons:
