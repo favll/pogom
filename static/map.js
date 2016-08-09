@@ -9,6 +9,9 @@ var $scanPercentLabel = $(".current-scan-percent");
 var $selectExclude = $("#exclude-pokemon");
 var excludedPokemon = [];
 
+//hacky list for now of the hardest things to catch
+var notifyPokemon = [2, 3, 5, 6, 8, 9, 12, 15, 26, 28, 31, 34, 36, 38, 40, 45, 55, 59, 62, 65, 68, 71, 76, 78, 80, 82, 87, 91, 93, 94, 101, 103, 105, 110, 113, 117, 122, 130, 131, 132, 134, 135, 136, 137, 139, 141, 142, 144, 145, 146, 148, 149, 150, 151];
+
 var map;
 var scanLocations = new Map();
 var coverCircles = [];
@@ -257,8 +260,9 @@ function setupPokemonMarker(item) {
     });
 
     addListeners(marker);
-
-    notifyChrome('A wild '+item.pokemon_name+' has appeared', window.location.origin+ '/static/icons/'+item.pokemon_id+'.png', 'Disappears in ' + formatTimeDiff((item.disappear_time - Date.now())/1000));
+    if(notifyPokemon.indexOf(item.pokemon_id) > 0){
+    	notifyChrome('A wild '+item.pokemon_name+' has appeared', window.location.origin+ '/static/icons/'+item.pokemon_id+'.png', 'Disappears in ' + formatTimeDiff((item.disappear_time - Date.now())/1000));
+	}
 
     return marker;
 }
