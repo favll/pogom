@@ -105,7 +105,7 @@ class Scanner(Thread):
         #self.api.wait_until_done()  # Work queue empty != work done
 
     def run(self):
-        while True:
+        for i in range(2):
             if self.scan_config.RESTART:
                 self.scan_config.RESTART = False
                 if self.scan_config.ACCOUNTS_CHANGED:
@@ -125,6 +125,7 @@ class Scanner(Thread):
             scan_start_time = time.time()
             self.scan()
             ScanMetrics.COMPLETE_SCAN_TIME = time.time() - scan_start_time
+        self.api.resize_workers(0)
 
 
 class ScanConfig(object):

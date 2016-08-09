@@ -189,6 +189,20 @@ class PGoApiWorker(Thread):
                 return (next_call, auth_provider)
 
     def run(self):
+        import cProfile, pstats, StringIO
+        pr = cProfile.Profile()
+        pr.enable()
+        
+        self.runx()
+        
+        pr.disable()
+        s = StringIO.StringIO()
+        sortby = 'tottime'
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.print_stats(30)
+        print s.getvalue()
+    
+    def runx(self):
         while self._running:
             method, position, callback = self._work_queue.get()
             if not self._running:
