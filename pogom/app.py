@@ -151,7 +151,8 @@ class Pogom(Flask):
         d['server_status'] = {'num-threads': ScanMetrics.NUM_THREADS,
                               'num-accounts': ScanMetrics.NUM_ACCOUNTS,
                               'last-successful-request': time_since_last_req,
-                              'complete-scan-time': ScanMetrics.COMPLETE_SCAN_TIME}
+                              'complete-scan-time': ScanMetrics.COMPLETE_SCAN_TIME,
+                              'current-scan-percent': ScanMetrics.CURRENT_SCAN_PERCENT}
 
         d['scan_locations'] = self.scan_config.SCAN_LOCATIONS
 

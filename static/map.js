@@ -4,6 +4,7 @@ var $numThreads = $(".num-threads");
 var $numAccounts = $(".num-accounts");
 var $lastRequestLabel = $(".last-request");
 var $fullScanLabel = $(".full-scan");
+var $scanPercentLabel = $(".current-scan-percent");
 
 var $selectExclude = $("#exclude-pokemon");
 var excludedPokemon = [];
@@ -516,7 +517,10 @@ function statusLabels(status) {
 
     var timeSinceScan = status['complete-scan-time'];
     if (timeSinceScan)
-        $fullScanLabel.html("Last full scan in "+ formatTimeDiff(timeSinceScan))
+        $fullScanLabel.html("Last scan in "+ formatTimeDiff(timeSinceScan))
+    
+    var currentScanPercentString = Number((status['current-scan-percent']).toFixed(2)).toString();
+    $scanPercentLabel.html("Current Scan: "+currentScanPercentString+"%");
 
 }
 
