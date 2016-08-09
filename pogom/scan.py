@@ -68,7 +68,10 @@ class Scanner(Thread):
             ScanMetrics.CONSECUTIVE_MAP_FAILS += 1
         else:
             ScanMetrics.STEPS_COMPLETED += 1
-            ScanMetrics.CURRENT_SCAN_PERCENT = float(ScanMetrics.STEPS_COMPLETED) / ScanMetrics.NUM_STEPS * 100
+            if ScanMetrics.NUM_STEPS:
+                ScanMetrics.CURRENT_SCAN_PERCENT = float(ScanMetrics.STEPS_COMPLETED) / ScanMetrics.NUM_STEPS * 100
+            else:
+                ScanMetrics.CURRENT_SCAN_PERCENT = 0
             log.info('Completed {:5.2f}% of scan.'.format(ScanMetrics.CURRENT_SCAN_PERCENT))
 
     def scan(self):
