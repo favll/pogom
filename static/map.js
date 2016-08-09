@@ -477,6 +477,9 @@ $('#coverage-checkbox').change(function() {
     scanLocations.forEach(function (scanLocation, key) {
         scanLocation.circle.setVisible(this.checked);
     }, this);
+    scanLocations.forEach(function (scanLocation, key) {
+        scanLocation.marker.setVisible(this.checked);
+    }, this);
 });
 
 
