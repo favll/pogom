@@ -102,7 +102,7 @@ class Scanner(Thread):
             else:
                 time.sleep(2)
 
-        self.api.wait_until_done()  # Work queue empty != work done
+        #self.api.wait_until_done()  # Work queue empty != work done
 
     def run(self):
         while True:
