@@ -438,6 +438,10 @@ function updateMap() {
         });
 
         clearStaleMarkers();
+    }).fail(function() {
+        $lastRequestLabel.removeClass('label-success label-warning');
+        $lastRequestLabel.addClass('label-danger');
+        $lastRequestLabel.html("Disconnected from Server")
     });
 }
 
