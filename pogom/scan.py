@@ -110,7 +110,7 @@ class Scanner(Thread):
                 self.scan_config.RESTART = False
                 if self.scan_config.ACCOUNTS_CHANGED:
                     self.scan_config.ACCOUNTS_CHANGED = False
-                    num_workers = max(int(math.ceil(len(config['ACCOUNTS']) / 23.0)), 3)
+                    num_workers = min(max(int(math.ceil(len(config['ACCOUNTS']) / 23.0)), 3), 10)
                     self.api.resize_workers(num_workers)
                     self.api.add_accounts(config['ACCOUNTS'])
 
