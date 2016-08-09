@@ -108,6 +108,9 @@ def parse_map(map_dict):
     gyms = {}
 
     cells = map_dict['responses']['GET_MAP_OBJECTS']['map_cells']
+    if sum(len(cell.keys()) for cell in cells) == len(cells) * 2:
+        log.warning("Received valid response but without any data. Possibly rate-limited?")
+    
     for cell in cells:
         for p in cell.get('wild_pokemons', []):
             if p['encounter_id'] in pokemons:
