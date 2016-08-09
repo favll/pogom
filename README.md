@@ -41,3 +41,30 @@ There's no other flags besides  `-H` and `-P`, everything else is configured thr
 - **Notifications**
 - Show/Hide Pokestops
 - Heatmaps!
+
+##FAQ
+
+**The scan is too slow!**
+
+Due to Niantic's throttling we can only do one scan every 10 seconds from each account. Each scan only gives us the Pokemon in a 70 meter radius around the center. This means, to scan a radius of one kilometer, we actually need to scan about 250 individual locations. If you are using only five accounts, this will take about 500 seconds (`250/5*10s = 500s`). With 100 accounts it will be finished in 25 seconds. So the solution is to add more accounts.
+
+**How many accounts should I use?**
+
+More = Better. But at about 200 accounts you will get diminishing returns because you're bottlenecked by other things (networking, parsing responses, DB). This is of course dependent on your system's performance, so your mileage may vary.
+
+**It should scan multiple locations in parallel!**
+
+The tool does scan all locations, but successively. Your actual problem is that you either have too few accounts or a too large area (see the calculation in the first question). Even if we change the order, the total runtime would stay the same. 
+
+**I'm getting errors such as `Server seems to be busy or offline!`, `Unexpected error during request: ...`, `Received empty map_object response. Logging out and retrying.`, `Request throttled by server... slow down man`**
+
+A certain number of failing requests is to be expected, as the Niantic servers are still somewhat unstable. The program handles the errors gracefully and tries again for a few times until it succeeds. It prints the error messages for debugging purposes. Unless it is a fatal crash and not all the requests fail, everything is fine. Also check if the servers are maybe completely unavailable for you, before opening an issue. 
+
+**I'm getting the error `Seems your IP Address is banned or something else went badly wrong`**
+
+Niantic blocked the IPs of several popular cloud providers such as Amazon, Digital Ocean, Google, etc. Try it on a different server.
+
+
+
+
+
