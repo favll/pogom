@@ -145,8 +145,17 @@ function initMap() {
             "json");
         });
     }
+
+    initGeoLocation();
 };
 
+function initGeoLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            map.setCenter({lat: position.coords.latitude, lng: position.coords.longitude});
+        });
+    }
+}
 
 function pokemonLabel(name, id, disappear_time, latitude, longitude) {
     var disappear_date = new Date(disappear_time);
