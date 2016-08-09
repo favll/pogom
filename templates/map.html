@@ -202,20 +202,21 @@ span.select2 { width: 100% !important; }
             <div id="menu">
                 <div id="menu-container">
                     <h1>Settings</h1>
-                    <p>
+                    <p style="margin: 8px 0">
                         {% if is_authenticated %}
                             <span class='auth-status label label-success'>Authenticated</span>
                         {% else %}
                             <span class='auth-status label label-warning'><a href="login" style="color: white; text-decoration: inherit;">Not authenticated</a></span>
                         {% endif %}
-                        <br />
                         <span class='last-request label label-warning'>No scans yet</span>
+                    </p>
+                    <p style="margin: 8px 0">
                         <span class='full-scan label label-grey'>No full scan yet</span>
-                        <span class='current-scan-percent label label-grey'>Current full scan percent: 0.00%</span>
+                        <span class='current-scan-percent label label-grey'>Current Scan: 0.00%</span>
                         <span class='num-threads label label-grey'>0 Threads</span>
                         <span class='num-accounts label label-grey'>0 Accounts</span>
                     </p>
-
+                    
                     <fieldset style="border: 0; padding-left: 0;">
                         <div class="chckbox">
                             <input type="checkbox" id="pokemon-checkbox">
