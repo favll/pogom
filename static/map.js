@@ -173,9 +173,18 @@ function pokemonLabel(name, id, disappear_time, latitude, longitude) {
         <div>\
             <a href='https://www.google.com/maps/dir/Current+Location/"+latitude+","+longitude+"'\
                     target='_blank' title='View in Maps'>Get Directions</a>\
+            <a href='#' onclick='removePokemon(\"" + id + "\")')>Hide " + name + "s</a>\
         </div>";
     return label;
 };
+
+function removePokemon(id) {
+    var selected=$selectExclude.val();
+    selected.push(id.toString());
+    $selectExclude.val(selected);
+
+    $selectExclude.change();
+}
 
 function gymLabel(team_name, team_id, gym_points) {
     var gym_color = [ "0, 0, 0, .4", "74, 138, 202, .6", "240, 68, 58, .6", "254, 217, 40, .6" ];
