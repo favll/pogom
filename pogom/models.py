@@ -11,6 +11,7 @@ from base64 import b64encode
 import threading
 
 from .utils import get_pokemon_name, get_args
+from playhouse.db_url import connect
 
 
 args = get_args()
