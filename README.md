@@ -10,7 +10,7 @@ Heavily using [pgoapi](https://github.com/keyphact/pgoapi). Shout-out to the Unk
 **Note:** If you are upgrading from the last version, you will have to update and/or reinstall the requirements.
 
 1. Clone the repository `git clone https://github.com/favll/pogom.git`
-2. Install the dependencies `pip install -r requirements.txt`
+2. Install the dependencies `pip install -r requirements.txt`   *(if you have problems during this step, check [these issues](https://github.com/favll/pogom/issues?utf8=%E2%9C%93&q=is%3Aissue%20label%3Adependencies%20) for help)*
 3. Start the server by running `python runserver.py`
 
 **Pro-Tip:** Use the `-H` and `-P` flag to specify host and port. E.g. `-H "127.0.0.1" -P 5001` will tell the webserver to listen to localhost requests on port 5001. You can then head over and take a look at the map at `http://127.0.0.1:5001/`. If you want the server to listen on all public IPs use the host `0.0.0.0`. This will allow you to access your server from other machines.
