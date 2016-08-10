@@ -152,7 +152,7 @@ function updateHeatMap() {
 
     });
 }
-updateHeatMap();
+window.setInterval(updateHeatMap, 10000);
 
 function initMap() {
     var initLat = 40.782850;  // NYC Central Park

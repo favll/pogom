@@ -62,7 +62,7 @@ class Pogom(Flask):
 
         if request.method == "GET":
             return render_template('login.html')
-
+        print config.get('CONFIG_PASSWORD')
         if request.form.get('password', None) == config.get('CONFIG_PASSWORD', None):
             resp = make_response(redirect(url_for('get_config_site')))
             resp.set_cookie('auth', config['AUTH_KEY'])
