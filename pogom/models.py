@@ -5,7 +5,7 @@ import logging
 import random
 import math
 from peewee import Model, SqliteDatabase, InsertQuery, IntegerField, \
-    CharField, FloatField, BooleanField, DateTimeField, fn, SQL, CompositeKey, MySQLDatabase
+    CharField, FloatField, BooleanField, DateTimeField, fn, SQL, CompositeKey
 from datetime import datetime
 from base64 import b64encode
 import threading
@@ -15,8 +15,8 @@ from .utils import get_pokemon_name, get_args
 
 args = get_args()
 
-if args.db_type == 'mysql':
-    db = MySQLDatabase(args.db_name, host=args.db_host, port=args.db_port, user=args.db_user, passwd=args.db_pass)
+if args.db != 'sqlite':
+    db = connect(args.db)
 else:
     db = SqliteDatabase('pogom.db', pragmas=(
         ('journal_mode', 'WAL'),
