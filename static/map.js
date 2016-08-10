@@ -256,6 +256,7 @@ function addListeners(marker){
         marker.infoWindow.open(map, marker);
         updateLabelDiffTime();
         marker.persist = true;
+        marker.setAnimation(null);
     });
 
     google.maps.event.addListener(marker.infoWindow,'closeclick',function(){
