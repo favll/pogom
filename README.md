@@ -57,6 +57,12 @@ More = Better. But at about 200 accounts you will get diminishing returns becaus
 
 The tool does scan all locations, but successively. Your actual problem is that you either have too few accounts or a too large area (see the calculation in the first question). Even if we change the order, the total runtime would stay the same. 
 
+**I'm getting the error `Received valid response but without any data. Possibly rate-limited?`**
+
+Niantic sometimes blocks accounts/IPs when they issue too many requests. In this case the server returns a perfectly valid response, but it contains no map data. **The exact details of this are unknown!** In rural areas you might get this error without being blocked, if there just aren't any map objects (pokemon, pokestops, spawnpoints) in the scanned area. 
+
+You can try to experiment with different settings (scanned area, no. of accounts) to get better results. We have an [issue thread](https://github.com/favll/pogom/issues/152) on the topic, check it out for more information.
+
 **I'm getting errors such as `Server seems to be busy or offline!`, `Unexpected error during request: ...`, `Received empty map_object response. Logging out and retrying.`, `Request throttled by server... slow down man`**
 
 A certain number of failing requests is to be expected, as the Niantic servers are still somewhat unstable. The program handles the errors gracefully and tries again for a few times until it succeeds. It prints the error messages for debugging purposes. Unless it is a fatal crash and not all the requests fail, everything is fine. Also check if the servers are maybe completely unavailable for you, before opening an issue. 
