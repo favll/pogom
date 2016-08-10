@@ -36,9 +36,10 @@ There's no other flags besides  `-H` and `-P`, everything else is configured thr
 - [x] Server status in the Web-GUI
 - [x] Stats about seen Pokemon
 - [x] Mobile friendly
+- [x] Browser Notifications
 
 ##TODO
-- **Notifications**
+- Webhooks/Pushbullet/Telegram Notifications
 - Show/Hide Pokestops
 - Heatmaps!
 
