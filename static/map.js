@@ -82,7 +82,6 @@ function is_logged_in(){
     }
 }
 
-
 function initMap() {
     var initLat = 40.782850;  // NYC Central Park
     var initLng = -73.965288;
@@ -174,6 +173,7 @@ function pokemonLabel(name, id, disappear_time, latitude, longitude) {
             <a href='https://www.google.com/maps/dir/Current+Location/"+latitude+","+longitude+"'\
                     target='_blank' title='View in Maps'>Get Directions</a>\
             <a href='#' onclick='removePokemon(\"" + id + "\")')>Hide " + name + "s</a>\
+            <a href='#' onclick='addToNotify(\"" + id + "\")')>Notify</a>\
         </div>";
     return label;
 };
@@ -223,12 +223,15 @@ function setupPokemonMarker(item) {
         icon: myIcon
     });
 
+    var label = pokemonLabel(item.pokemon_name, item.pokemon_id, item.disappear_time, item.latitude, item.longitude);
+
     marker.infoWindow = new google.maps.InfoWindow({
-        content: pokemonLabel(item.pokemon_name, item.pokemon_id, item.disappear_time, item.latitude, item.longitude),
+        content: label,
         disableAutoPan: true
     });
 
     addListeners(marker);
+
     return marker;
 }
 
@@ -410,6 +413,7 @@ function updateMap() {
                 if (item.marker) item.marker.setMap(null);
                 item.marker = setupPokemonMarker(item);
                 map_pokemons[item.encounter_id] = item;
+                notify(item);
             }
         });
 

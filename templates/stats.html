@@ -6,6 +6,7 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
           integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/static/styles/stats.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="static/favicon.ico">
     <style>
@@ -17,6 +18,16 @@
 <body>
 <div class="container col-md-6 col-md-offset-3">
     <h1>Pokestats</h1>
+    <div class="form-group notify-selector col-sm-4">
+      <select class="form-control" id="sel1">
+        <option value="1">Notify for All</option>
+        <option value="2">Uncommon</option>
+        <option value="3">Rare</option>
+        <option value="4">Very Rare</option>
+        <option value="5">Ultra Rare</option>
+        <option default value="6">None</option>
+      </select>
+    </div>
     <table class="table table-striped table-hover">
         <thead>
             <tr>
@@ -26,6 +37,7 @@
                 <th>Name</th>
                 <th class="text-right">Count</th>
                 <th class="text-right">%</th>
+                <th>Notify</th>
             </tr>
         </thead>
         <tbody>
@@ -33,7 +45,7 @@
                 <tr>
                     <td class="col-sm-1">{{ loop.index }}</td>
                     <td class="col-sm-1 text-right">
-                        <a href="http://pokemondb.net/pokedex/{{ pokemon.pokemon_id }}">
+                        <a href="http://pokemondb.net/pokedex/{{ pokemon.pokemon_id }}" target="_blank">
                             <strong>#{{pokemon.pokemon_id}}</strong>
                         </a>
                     </td>
@@ -41,6 +53,7 @@
                     <td><strong>{{pokemon.pokemon_name}}</strong></td>
                     <td class="text-right col-sm-1">{{ '{:,}'.format(pokemon.count)}}</td>
                     <td class="text-right col-sm-1">{% print '{:4.2g}'.format(pokemon.count / total * 100) %}%</td>
+                    <td class="text-center col-sm-1"><input type="checkbox" name="" id="notify-{{pokemon.pokemon_id}}" class="notify-checkbox" value="{{pokemon.pokemon_id}}"></td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -56,6 +69,7 @@
         </tfoot>
     </table>
 </div>
-
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script async defer type="text/javascript" src="/static/notify.js"></script>
 </body>
 </html>
