@@ -26,7 +26,13 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-H', '--host', help='Set web server listening host', default='127.0.0.1')
     parser.add_argument('-P', '--port', type=int, help='Set web server listening port', default=5000)
-
+    parser.add_argument('--db-type', help='Type of database to be used (default: sqlite)',
+                        default='sqlite')
+    parser.add_argument('--db-name', help='Name of the database to be used')
+    parser.add_argument('--db-user', help='Username for the database')
+    parser.add_argument('--db-pass', help='Password for the database')
+    parser.add_argument('--db-host', help='IP or hostname for the database')
+    parser.add_argument('--db-port', help='Port for the database', type=int, default=3306)
     parser.add_argument('-d', '--debug', type=str.lower, help='Debug Level [info|debug]', default=None)
 
     return parser.parse_args()

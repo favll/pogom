@@ -5,18 +5,24 @@ import logging
 import random
 import math
 from peewee import Model, SqliteDatabase, InsertQuery, IntegerField, \
-    CharField, FloatField, BooleanField, DateTimeField, fn, SQL, CompositeKey
+    CharField, FloatField, BooleanField, DateTimeField, fn, SQL, CompositeKey, MySQLDatabase
 from datetime import datetime
 from base64 import b64encode
 import threading
 
-from .utils import get_pokemon_name
+from .utils import get_pokemon_name, get_args
 
-db = SqliteDatabase('pogom.db', pragmas=(
-    ('journal_mode', 'WAL'),
-    ('cache_size', 10000),
+
+args = get_args()
+
+if args.db_type == 'mysql':
+    db = MySQLDatabase(args.db_name, host=args.db_host, port=args.db_port, user=args.db_user, passwd=args.db_pass)
+else:
+    db = SqliteDatabase('pogom.db', pragmas=(
+        ('journal_mode', 'WAL'),
+        ('cache_size', 10000),
     ('mmap_size', 1024 * 1024 * 32),
-))
+    ))
 log = logging.getLogger(__name__)
 lock = threading.Lock()
 
