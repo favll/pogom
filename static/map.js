@@ -14,10 +14,14 @@ var scanLocations = new Map();
 var coverCircles = [];
 var newLocationMarker;
 
+var $heatMapMons = $("#heat-map-mons");
+var heatMapMons = [];
+var heatmapData = {};
+
 
 try {
     excludedPokemon = JSON.parse(localStorage.excludedPokemon);
-    console.log(excludedPokemon);
+    heatMapMons = JSON.parse(localStorage.heatMapMons);
 } catch (e) {}
 
 
@@ -40,7 +44,7 @@ document.getElementById('pokemon-checkbox').checked = getFromStorage("displayPok
 document.getElementById('gyms-checkbox').checked = getFromStorage("displayGyms", "true");
 document.getElementById('coverage-checkbox').checked = getFromStorage("displayCoverage", "true");
 
- 
+
 $.getJSON("static/locales/pokemon.en.json").done(function(data) {
     var pokeList = [];
 
@@ -53,6 +57,12 @@ $.getJSON("static/locales/pokemon.en.json").done(function(data) {
         data: pokeList
     });
     $selectExclude.val(excludedPokemon).trigger("change");
+
+    $heatMapMons.select2({
+      placeholder: "Type to add a heatmap filter",
+      data: pokeList
+    });
+    $heatMapMons.val(heatMapMons).trigger("change");
 });
 
 // exclude multi-select listener
@@ -60,6 +70,24 @@ $selectExclude.on("change", function (e) {
     excludedPokemon = $selectExclude.val().map(Number);
     localStorage.excludedPokemon = JSON.stringify(excludedPokemon);
     clearStaleMarkers();
+});
+
+$heatMapMons.on("change", function (e){
+    var newHeatMapMons = $heatMapMons.val().map(Number);
+    var filtered = newHeatMapMons.filter(function(i) {return heatMapMons.indexOf(i) == -1;});
+    if (filtered.length == 0) {
+      filtered = heatMapMons.filter(function(i) {return newHeatMapMons.indexOf(i) == -1;});
+    }
+    heatMapMons = newHeatMapMons;
+if(typeof google !== 'undefined') {
+   $.each(filtered, function(i, item){
+       if(heatmapData[item]){
+           var hmap = heatmapData[item]['map'];
+           hmap.setMap(hmap.getMap() ? null : map);
+       }
+   });
+}
+localStorage.heatMapMons = JSON.stringify(heatMapMons);
 });
 
 // Stolen from http://www.quirksmode.org/js/cookies.html
@@ -82,6 +110,49 @@ function is_logged_in(){
     }
 }
 
+function drawHeatMap(index, item) {
+    var setMap = heatMapMons.indexOf(Number(index)) == -1 ? null : map;
+    heatmapData[index]['map'] =  new google.maps.visualization.HeatmapLayer({
+        data: item.data,
+        dissipating: true,
+        map: setMap
+    })
+}
+
+
+function updateHeatMap() {
+    $.ajax({
+        url: "heatmap-data",
+        type: 'GET',
+        data: {'pokemon': localStorage.displayPokemons},
+        dataType: "json"
+    }).done(function(result) {
+        statusLabels(result["server_status"]);
+        // Google's heatmap example
+        $.each(result.pokemons, function(i, item){
+            if (item.count == 0 ) {
+                return false;
+            }
+            var latLng = new google.maps.LatLng(item.latitude, item.longitude);
+            var magnitude = item.count;
+            var weightedLoc = {
+                location: latLng,
+                weight: magnitude
+            }
+            if(heatmapData[item.pokemon_id]) {
+                heatmapData[item.pokemon_id]['data'].push(weightedLoc);
+            } else {
+                heatmapData[item.pokemon_id] = {name: item.name,
+                data: [weightedLoc]};
+            }
+        });
+        $.each(heatmapData, function (i, item) {
+            drawHeatMap(i, item);
+        })
+
+    });
+}
+updateHeatMap();
 
 function initMap() {
     var initLat = 40.782850;  // NYC Central Park
@@ -100,7 +171,7 @@ function initMap() {
         streetViewControl: false,
         disableAutoPan: true
     });
-    
+
     updateScanLocations(initialScanLocations);
     updateMap();
 
@@ -404,7 +475,7 @@ function updateMap() {
                 return false; // in case the checkbox was unchecked in the meantime.
             }
 
-            if (!(item.encounter_id in map_pokemons) && 
+            if (!(item.encounter_id in map_pokemons) &&
                     excludedPokemon.indexOf(item.pokemon_id) < 0) {
                 // add marker to map and item to dict
                 if (item.marker) item.marker.setMap(null);
@@ -543,8 +614,8 @@ function statusLabels(status) {
     var timeSinceScan = status['complete-scan-time'];
     if (timeSinceScan)
         $fullScanLabel.html("Last scan in "+ formatTimeDiff(timeSinceScan))
-    
-    var currentScanPercentString = Number((status['current-scan-percent']).toFixed(2)).toString();
+
+    var currentScanPercentString = status['current-scan-percent'] ? Number((status['current-scan-percent']).toFixed(2)).toString() : 0;
     $scanPercentLabel.html("Current Scan: "+currentScanPercentString+"%");
 
 }
