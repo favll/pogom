@@ -51,6 +51,8 @@ function notify(item) {
 		notifyAudio.play();
 		desktopNotification(item);
 		// webhookNotification(item);
+		item.marker.setAnimation(google.maps.Animation.BOUNCE);
+		setTimeout(function(){item.marker.setAnimation(null);}, 60000);
 	}
 }
 
