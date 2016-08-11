@@ -46,14 +46,15 @@ function removeFromNotify(pokemonIndex, update) {
 }
 
 function notify(item) {
-    console.log(item);
-	if (notifyPokemon.has(String(item.pokemon_id))){
-		notifyAudio.play();
-		desktopNotification(item);
-		// webhookNotification(item);
-		item.marker.setAnimation(google.maps.Animation.BOUNCE);
-		setTimeout(function(){item.marker.setAnimation(null);}, 60000);
-	}
+    try {
+        if (notifyPokemon.has(String(item.pokemon_id))){
+            notifyAudio.play();
+            desktopNotification(item);
+            // webhookNotification(item);
+            item.marker.setAnimation(google.maps.Animation.BOUNCE);
+            setTimeout(function(){item.marker.setAnimation(null);}, 60000);
+        }        
+    } catch (e) {}
 }
 
 function desktopNotification(item){
@@ -105,7 +106,7 @@ function initNotifications(){
         });
     });
 
-	if (!Notification) {
+	if (Notification === null || !Notification) {
 		alert('Desktop notifications are not available in your browser. Try Chrome.');
 		$notifyCheckboxes.disable(); 
 		return;
