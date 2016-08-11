@@ -29,6 +29,7 @@ class Pogom(Flask):
         self.json_encoder = CustomJSONEncoder
 
         self.route('/', methods=['GET'])(self.fullmap)
+        self.route('/heatmap-data', methods=['GET'])(self.heatmap_data)
         self.route('/map-data', methods=['GET'])(self.map_data)
         self.route('/cover', methods=['GET'])(self.cover)
         self.route('/location', methods=['POST'])(self.add_location)
@@ -43,7 +44,7 @@ class Pogom(Flask):
             return False
         else:
             return True
-    
+
     def fullmap(self):
         # if 'search_thread' not in [t.name for t in threading.enumerate()]:
         if (not config.get('GOOGLEMAPS_KEY', None) or
@@ -58,14 +59,16 @@ class Pogom(Flask):
     def login(self):
         if self.is_authenticated():
             return redirect(url_for('get_config_site'))
-        
+
         if request.method == "GET":
             return render_template('login.html')
-
         if request.form.get('password', None) == config.get('CONFIG_PASSWORD', None):
             resp = make_response(redirect(url_for('get_config_site')))
             resp.set_cookie('auth', config['AUTH_KEY'])
             return resp
+
+    def heatmap_data(self):
+        return jsonify( Pokemon.get_heat_stats() )
 
     def get_config_site(self):
         if not self.is_authenticated():
