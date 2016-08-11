@@ -15,13 +15,12 @@ var coverCircles = [];
 var newLocationMarker;
 
 var $heatMapMons = $("#heat-map-mons");
-var heatMapMons = [];
-var heatmapData = {};
+var heatMapData = {};
+var pokeList = [];  // contains all 150 pokemon in form { id: id, text: name}
 
 
 try {
     excludedPokemon = JSON.parse(localStorage.excludedPokemon);
-    heatMapMons = JSON.parse(localStorage.heatMapMons);
 } catch (e) {}
 
 
@@ -46,7 +45,6 @@ document.getElementById('coverage-checkbox').checked = getFromStorage("displayCo
 
 
 $.getJSON("static/locales/pokemon.en.json").done(function(data) {
-    var pokeList = [];
 
     $.each(data, function(key, value) {
         pokeList.push( { id: key, text: value } );
@@ -62,7 +60,6 @@ $.getJSON("static/locales/pokemon.en.json").done(function(data) {
       placeholder: "Type to add a heatmap filter",
       data: pokeList
     });
-    $heatMapMons.val(heatMapMons).trigger("change");
 });
 
 // exclude multi-select listener
@@ -73,21 +70,18 @@ $selectExclude.on("change", function (e) {
 });
 
 $heatMapMons.on("change", function (e){
-    var newHeatMapMons = $heatMapMons.val().map(Number);
-    var filtered = newHeatMapMons.filter(function(i) {return heatMapMons.indexOf(i) == -1;});
-    if (filtered.length == 0) {
-      filtered = heatMapMons.filter(function(i) {return newHeatMapMons.indexOf(i) == -1;});
-    }
-    heatMapMons = newHeatMapMons;
-if(typeof google !== 'undefined') {
-   $.each(filtered, function(i, item){
-       if(heatmapData[item]){
-           var hmap = heatmapData[item]['map'];
-           hmap.setMap(hmap.getMap() ? null : map);
-       }
-   });
-}
-localStorage.heatMapMons = JSON.stringify(heatMapMons);
+    var heatMapMons = $heatMapMons.val().map(Number);
+
+    $.each(pokeList, function(i, poke) {
+        if (typeof google === 'undefined') return;
+        if (!heatMapData[poke.id]) return;
+
+        if (heatMapMons.indexOf(parseInt(poke.id)) != -1) {
+            heatMapData[poke.id]['map'].setMap(map);
+        } else {
+            heatMapData[poke.id]['map'].setMap(null);
+        }
+    });
 });
 
 // Stolen from http://www.quirksmode.org/js/cookies.html
@@ -111,11 +105,10 @@ function is_logged_in(){
 }
 
 function drawHeatMap(index, item) {
-    var setMap = heatMapMons.indexOf(Number(index)) == -1 ? null : map;
-    heatmapData[index]['map'] =  new google.maps.visualization.HeatmapLayer({
+    heatMapData[index]['map'] =  new google.maps.visualization.HeatmapLayer({
         data: item.data,
         dissipating: true,
-        map: setMap
+        map: null
     })
 }
 
@@ -126,10 +119,9 @@ function updateHeatMap() {
         type: 'GET',
         data: {'pokemon': localStorage.displayPokemons},
         dataType: "json"
-    }).done(function(result) {
-        statusLabels(result["server_status"]);
+    }).done(function(pokemons) {
         // Google's heatmap example
-        $.each(result.pokemons, function(i, item){
+        $.each(pokemons, function(i, item){
             if (item.count == 0 ) {
                 return false;
             }
@@ -139,14 +131,16 @@ function updateHeatMap() {
                 location: latLng,
                 weight: magnitude
             }
-            if(heatmapData[item.pokemon_id]) {
-                heatmapData[item.pokemon_id]['data'].push(weightedLoc);
+            if(heatMapData[item.pokemon_id]) {
+                heatMapData[item.pokemon_id]['data'].push(weightedLoc);
             } else {
-                heatmapData[item.pokemon_id] = {name: item.name,
-                data: [weightedLoc]};
+                heatMapData[item.pokemon_id] = {
+                    name: item.name,
+                    data: [weightedLoc]
+                };
             }
         });
-        $.each(heatmapData, function (i, item) {
+        $.each(heatMapData, function (i, item) {
             drawHeatMap(i, item);
         })
 

@@ -62,28 +62,13 @@ class Pogom(Flask):
 
         if request.method == "GET":
             return render_template('login.html')
-        print config.get('CONFIG_PASSWORD')
         if request.form.get('password', None) == config.get('CONFIG_PASSWORD', None):
             resp = make_response(redirect(url_for('get_config_site')))
             resp.set_cookie('auth', config['AUTH_KEY'])
             return resp
 
     def heatmap_data(self):
-        d = {}
-        d['pokemons'] = Pokemon.get_heat_stats()
-
-        if not ScanMetrics.LAST_SUCCESSFUL_REQUEST:
-            time_since_last_req = "na"
-        elif ScanMetrics.LAST_SUCCESSFUL_REQUEST == -1:
-            time_since_last_req = "sleep"
-        else:
-            time_since_last_req = time.time() - ScanMetrics.LAST_SUCCESSFUL_REQUEST
-
-        d['server_status'] = {'num-threads': ScanMetrics.NUM_THREADS,
-                              'num-accounts': ScanMetrics.NUM_ACCOUNTS,
-                              'last-successful-request': time_since_last_req,
-                              'complete-scan-time': ScanMetrics.COMPLETE_SCAN_TIME}
-        return jsonify(d)
+        return jsonify( Pokemon.get_heat_stats() )
 
     def get_config_site(self):
         if not self.is_authenticated():
