@@ -104,8 +104,6 @@ function is_logged_in(){
     }
 }
 
-<<<<<<< HEAD
-=======
 function drawHeatMap(index, item) {
     heatMapData[index]['map'] =  new google.maps.visualization.HeatmapLayer({
         data: item.data,
@@ -150,7 +148,6 @@ function updateHeatMap() {
 }
 updateHeatMap();
 
->>>>>>> heatmap
 function initMap() {
     var initLat = 40.782850;  // NYC Central Park
     var initLng = -73.965288;
