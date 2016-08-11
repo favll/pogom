@@ -37,11 +37,11 @@ There's no other flags besides  `-H` and `-P`, everything else is configured thr
 - [x] Stats about seen Pokemon
 - [x] Mobile friendly
 - [x] Browser Notifications
+- [x] Heatmaps
 
 ##TODO
 - Webhooks/Pushbullet/Telegram Notifications
 - Show/Hide Pokestops
-- Heatmaps!
 
 ##FAQ
 
