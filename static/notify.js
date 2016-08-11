@@ -106,21 +106,23 @@ function initNotifications(){
         });
     });
 
-	if (Notification === null || !Notification) {
-		alert('Desktop notifications are not available in your browser. Try Chrome.');
-		$notifyCheckboxes.disable(); 
-		return;
-	}
+    try {
+        if (Notification === null || !Notification) {
+            alert('Desktop notifications are not available in your browser. Try Chrome.');
+            $notifyCheckboxes.disable(); 
+            return;
+        }
 
-	if (Notification.permission !== "granted") {
-		Notification.requestPermission();
-	}
+        if (Notification.permission !== "granted") {
+            Notification.requestPermission();
+        }
 
-	getNotifyList();
-    
-    notifyPokemon.forEach(function(value){
-        updateNotifyCheckbox(value, true);
-    });
+        getNotifyList();
+        
+        notifyPokemon.forEach(function(value){
+            updateNotifyCheckbox(value, true);
+        });
+    } catch (e) {}
 }
 
 initNotifications();
