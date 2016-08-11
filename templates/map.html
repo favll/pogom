@@ -75,8 +75,12 @@ html, body {
   z-index: 1;
 
   transform-origin: 4px 0px;
+  -webkit-transform-origin: 4px 0px;
 
   transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+              background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+              opacity 0.55s ease;
+  -webkit-transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
               background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
               opacity 0.55s ease;
 }
@@ -84,11 +88,13 @@ html, body {
 #menuToggle > span:first-child
 {
   transform-origin: 0% 0%;
+  -webkit-transform-origin: 0% 0%;
 }
 
 #menuToggle > span:nth-last-child(2)
 {
   transform-origin: 0% 100%;
+  -webkit-transform-origin: 0% 100%;
 }
 
 /*
@@ -99,6 +105,7 @@ html, body {
 {
   opacity: 1;
   transform: rotate(45deg) translate(-2px, -1px);
+  -webkit-transform: rotate(45deg) translate(-2px, -1px);
   background: #232323;
 }
 
@@ -109,6 +116,7 @@ html, body {
 {
   opacity: 0;
   transform: rotate(0deg) scale(0.2, 0.2);
+  -webkit-transform: rotate(0deg) scale(0.2, 0.2);
 }
 
 /*
@@ -118,10 +126,12 @@ html, body {
 {
   opacity: 1;
   transform: rotate(-45deg) translate(0, -1px);
+  -webkit-transform: rotate(-45deg) translate(0, -1px);
 }
 #menuToggle > input:checked ~ div
 {
   transform: scale(1.0, 1.0);
+  -webkit-transform: scale(1.0, 1.0);
   opacity: 1;
 }
 #menu
@@ -140,8 +150,11 @@ html, body {
 
   transform-origin: 0% 0%;
   transform: translate(-100%, 0);
+  -webkit-transform-origin: 0% 0%;
+  -webkit-transform: translate(-100%, 0);
 
   transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
+  -webkit-transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
 }
 #menu-container {
   padding: 50px 20px 0 20px;
