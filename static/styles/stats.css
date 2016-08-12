@@ -1,5 +1,9 @@
 .notify-selector{
 	position: absolute;
 	right: 0;
-	top: 25px;
+	top: 58px;
+}
+
+.margin-top-15{
+	margin-top: 15px;
 }
