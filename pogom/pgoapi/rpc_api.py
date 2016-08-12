@@ -136,6 +136,7 @@ class RpcApi:
         if isinstance(response_dict, dict):
             status_code = response_dict.get('status_code', None)
             if status_code == 102:
+                self._auth_provider._access_token_expiry = time.time()
                 raise AuthTokenExpiredException()
             elif status_code == 52:
                 raise ServerSideRequestThrottlingException("Request throttled by server... slow down man")

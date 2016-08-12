@@ -5,7 +5,7 @@
             <meta http-equiv="X-UA-Compatible" content="IE=edge">
             <meta name="viewport" content="width=device-width, initial-scale=1">
             <title>Pokémon Go Map</title>
-            
+
             <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
             <link rel="icon" type="image/png" href="static/favicon.ico">
 
@@ -34,9 +34,9 @@ html, body {
   left: 20px;
   background-color: rgba(255, 255, 255, 0.57);
   padding: 10px 10px 5px 10px;
-      
+
   z-index: 1;
-  
+
   -webkit-user-select: none;
   user-select: none;
 }
@@ -49,12 +49,12 @@ html, body {
   position: absolute;
   top: -7px;
   left: -5px;
-  
+
   cursor: pointer;
-  
+
   opacity: 0; /* hide this */
   z-index: 2; /* and place it over the hamburger */
-  
+
   -webkit-touch-callout: none;
 }
 
@@ -68,15 +68,19 @@ html, body {
   height: 4px;
   margin-bottom: 5px;
   position: relative;
-  
+
   background: #af1414;
   border-radius: 3px;
-  
+
   z-index: 1;
-  
+
   transform-origin: 4px 0px;
-  
+  -webkit-transform-origin: 4px 0px;
+
   transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+              background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
+              opacity 0.55s ease;
+  -webkit-transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
               background 0.5s cubic-bezier(0.77,0.2,0.05,1.0),
               opacity 0.55s ease;
 }
@@ -84,14 +88,16 @@ html, body {
 #menuToggle > span:first-child
 {
   transform-origin: 0% 0%;
+  -webkit-transform-origin: 0% 0%;
 }
 
 #menuToggle > span:nth-last-child(2)
 {
   transform-origin: 0% 100%;
+  -webkit-transform-origin: 0% 100%;
 }
 
-/* 
+/*
  * Transform all the slices of hamburger
  * into a crossmark.
  */
@@ -99,6 +105,7 @@ html, body {
 {
   opacity: 1;
   transform: rotate(45deg) translate(-2px, -1px);
+  -webkit-transform: rotate(45deg) translate(-2px, -1px);
   background: #232323;
 }
 
@@ -109,6 +116,7 @@ html, body {
 {
   opacity: 0;
   transform: rotate(0deg) scale(0.2, 0.2);
+  -webkit-transform: rotate(0deg) scale(0.2, 0.2);
 }
 
 /*
@@ -118,10 +126,12 @@ html, body {
 {
   opacity: 1;
   transform: rotate(-45deg) translate(0, -1px);
+  -webkit-transform: rotate(-45deg) translate(0, -1px);
 }
 #menuToggle > input:checked ~ div
 {
   transform: scale(1.0, 1.0);
+  -webkit-transform: scale(1.0, 1.0);
   opacity: 1;
 }
 #menu
@@ -131,17 +141,20 @@ html, body {
   top: 0;
   left: 0;
   height: 100%;
-  overflow: scroll;
-  
+  overflow: auto;
+
   background: #ededed;
   list-style-type: none;
   -webkit-font-smoothing: antialiased;
   /* to stop flickering of text in safari */
-  
+
   transform-origin: 0% 0%;
   transform: translate(-100%, 0);
-  
+  -webkit-transform-origin: 0% 0%;
+  -webkit-transform: translate(-100%, 0);
+
   transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
+  -webkit-transition: transform 0.5s cubic-bezier(0.77,0.2,0.05,1.0);
 }
 #menu-container {
   padding: 50px 20px 0 20px;
@@ -229,18 +242,18 @@ span.select2 { width: 100% !important; }
                         <span class="num-threads label label-grey">0 Threads</span>
                         <span class="num-accounts label label-grey">0 Accounts</span>
                     </p>
-                    
+
                     <fieldset style="border: 0; padding-left: 0;">
                         <div class="chckbox">
                             <input type="checkbox" id="pokemon-checkbox">
-                            <label for="pokemon-checkbox">Display Pokemon</label><br> 
+                            <label for="pokemon-checkbox">Display Pokemon</label><br>
                         </div>
                         <!--
                         <div class="chckbox">
                             <input type="checkbox" id="pokestops-checkbox">
                             <label for="pokestops-checkbox">Display all Pokestops</label><br>
                         </div>
-                        
+
                         <div class="chckbox">
                             <input type="checkbox" id="pokestops-lured-checkbox">
                             <label for="pokestops-lured-checkbox">Display lured Pokestops</label><br>
@@ -250,20 +263,25 @@ span.select2 { width: 100% !important; }
                             <input type="checkbox" id="gyms-checkbox">
                             <label for="gyms-checkbox">Display Gyms</label><br>
                         </div>
-                        
+
                         <div class="chckbox">
                             <input type="checkbox" id="coverage-checkbox">
-                            <label for="coverage-checkbox">Show Map Coverage</label><br> 
+                            <label for="coverage-checkbox">Show Map Coverage</label><br>
                         </div>
                     </fieldset>
-                    
+
                     <p>
                     <label for="exclude-pokemon">
                         Hide common Pokemon:
                         <select id="exclude-pokemon" multiple="multiple"></select>
                     </label>
                     </p>
-
+                    <p>
+                    <label for="heat-map-mons">
+                        Show a heatmap of pokemons:
+                        <select id="heat-map-mons" multiple="multiple"></select>
+                      </label>
+                    </p>
                     <p>
                         <a href="config">Server Configuration</a> <br />
                         <a href="stats">View Stats and Notifications</a>
@@ -276,7 +294,7 @@ span.select2 { width: 100% !important; }
         <div id="map"></div>
 
     </body>
-    
+
     <script type="text/javascript">
       var initialScanLocations = {{ scan_locations|safe }}
     </script>
@@ -285,6 +303,5 @@ span.select2 { width: 100% !important; }
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
     <script type="text/javascript" src="static/map.js"></script>
     <script type="text/javascript" src="static/notify.js"></script>
-    <script async defer type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{ gmaps_key }}&callback=initMap"></script>
-    
+    <script async defer type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{ gmaps_key }}&libraries=visualization&callback=initMap"></script>
 </html>

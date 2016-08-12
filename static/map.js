@@ -14,10 +14,13 @@ var scanLocations = new Map();
 var coverCircles = [];
 var newLocationMarker;
 
+var $heatMapMons = $("#heat-map-mons");
+var heatMapData = {};
+var pokeList = [];  // contains all 150 pokemon in form { id: id, text: name}
+
 
 try {
     excludedPokemon = JSON.parse(localStorage.excludedPokemon);
-    console.log(excludedPokemon);
 } catch (e) {}
 
 
@@ -40,9 +43,8 @@ document.getElementById('pokemon-checkbox').checked = getFromStorage("displayPok
 document.getElementById('gyms-checkbox').checked = getFromStorage("displayGyms", "true");
 document.getElementById('coverage-checkbox').checked = getFromStorage("displayCoverage", "true");
 
- 
+
 $.getJSON("static/locales/pokemon.en.json").done(function(data) {
-    var pokeList = [];
 
     $.each(data, function(key, value) {
         pokeList.push( { id: key, text: value } );
@@ -53,6 +55,11 @@ $.getJSON("static/locales/pokemon.en.json").done(function(data) {
         data: pokeList
     });
     $selectExclude.val(excludedPokemon).trigger("change");
+
+    $heatMapMons.select2({
+      placeholder: "Type to add a heatmap filter",
+      data: pokeList
+    });
 });
 
 // exclude multi-select listener
@@ -60,6 +67,21 @@ $selectExclude.on("change", function (e) {
     excludedPokemon = $selectExclude.val().map(Number);
     localStorage.excludedPokemon = JSON.stringify(excludedPokemon);
     clearStaleMarkers();
+});
+
+$heatMapMons.on("change", function (e){
+    var heatMapMons = $heatMapMons.val().map(Number);
+
+    $.each(pokeList, function(i, poke) {
+        if (typeof google === 'undefined') return;
+        if (!heatMapData[poke.id]) return;
+
+        if (heatMapMons.indexOf(parseInt(poke.id)) != -1) {
+            heatMapData[poke.id]['map'].setMap(map);
+        } else {
+            heatMapData[poke.id]['map'].setMap(null);
+        }
+    });
 });
 
 // Stolen from http://www.quirksmode.org/js/cookies.html
@@ -82,6 +104,50 @@ function is_logged_in(){
     }
 }
 
+function drawHeatMap(index, item) {
+    heatMapData[index]['map'] =  new google.maps.visualization.HeatmapLayer({
+        data: item.data,
+        dissipating: true,
+        map: null
+    })
+}
+
+
+function updateHeatMap() {
+    $.ajax({
+        url: "heatmap-data",
+        type: 'GET',
+        data: {'pokemon': localStorage.displayPokemons},
+        dataType: "json"
+    }).done(function(pokemons) {
+        // Google's heatmap example
+        $.each(pokemons, function(i, item){
+            if (item.count == 0 ) {
+                return false;
+            }
+            var latLng = new google.maps.LatLng(item.latitude, item.longitude);
+            var magnitude = item.count;
+            var weightedLoc = {
+                location: latLng,
+                weight: magnitude
+            }
+            if(heatMapData[item.pokemon_id]) {
+                heatMapData[item.pokemon_id]['data'].push(weightedLoc);
+            } else {
+                heatMapData[item.pokemon_id] = {
+                    name: item.name,
+                    data: [weightedLoc]
+                };
+            }
+        });
+        $.each(heatMapData, function (i, item) {
+            drawHeatMap(i, item);
+        })
+
+    });
+}
+updateHeatMap();
+
 function initMap() {
     var initLat = 40.782850;  // NYC Central Park
     var initLng = -73.965288;
@@ -99,7 +165,7 @@ function initMap() {
         streetViewControl: false,
         disableAutoPan: true
     });
-    
+
     updateScanLocations(initialScanLocations);
     updateMap();
 
@@ -408,7 +474,7 @@ function updateMap() {
                 return false; // in case the checkbox was unchecked in the meantime.
             }
 
-            if (!(item.encounter_id in map_pokemons) && 
+            if (!(item.encounter_id in map_pokemons) &&
                     excludedPokemon.indexOf(item.pokemon_id) < 0) {
                 // add marker to map and item to dict
                 if (item.marker) item.marker.setMap(null);
@@ -548,8 +614,8 @@ function statusLabels(status) {
     var timeSinceScan = status['complete-scan-time'];
     if (timeSinceScan)
         $fullScanLabel.html("Last scan in "+ formatTimeDiff(timeSinceScan))
-    
-    var currentScanPercentString = Number((status['current-scan-percent']).toFixed(2)).toString();
+
+    var currentScanPercentString = status['current-scan-percent'] ? Number((status['current-scan-percent']).toFixed(2)).toString() : 0;
     $scanPercentLabel.html("Current Scan: "+currentScanPercentString+"%");
 
 }

@@ -3,7 +3,7 @@ The fastest Pokémon Go map available.
 
 Heavily using [pgoapi](https://github.com/keyphact/pgoapi). Shout-out to the Unknown6 team!
 
-![image](https://cloud.githubusercontent.com/assets/1723176/17482369/bf3df2b2-5d81-11e6-904e-edfd496702dc.png)
+![image](https://cloud.githubusercontent.com/assets/1723176/17600131/7383f942-6002-11e6-95da-04466cee4a3d.png)
 
 ##Installation:
 
@@ -37,11 +37,11 @@ There's no other flags besides  `-H` and `-P`, everything else is configured thr
 - [x] Stats about seen Pokemon
 - [x] Mobile friendly
 - [x] Browser Notifications
+- [x] Heatmaps
 
 ##TODO
 - Webhooks/Pushbullet/Telegram Notifications
 - Show/Hide Pokestops
-- Heatmaps!
 
 ##FAQ
 
