@@ -379,6 +379,7 @@ function newMarker(latitude, longitude) {
         marker.addListener('click', function () {
             marker.infoWindow.open(map, marker);
         });
+        marker.setVisible(document.getElementById('coverage-checkbox').checked);
 
         // This is not a very beautiful solution
         $('#map').on('click', '#' + buttonId, function () {
