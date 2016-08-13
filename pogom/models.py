@@ -5,7 +5,7 @@ import logging
 import random
 import math
 from peewee import Model, SqliteDatabase, InsertQuery, IntegerField, \
-    CharField, FloatField, BooleanField, DateTimeField, fn, SQL, CompositeKey
+    CharField, FloatField, BooleanField, DateTimeField, fn, SQL
 from datetime import datetime
 from base64 import b64encode
 import threading
@@ -33,15 +33,12 @@ class BaseModel(Model):
 class Pokemon(BaseModel):
     # We are base64 encoding the ids delivered by the api
     # because they are too big for sqlite to handle
-    encounter_id = CharField()
+    encounter_id = CharField(primary_key=True)
     spawnpoint_id = CharField()
     pokemon_id = IntegerField()
     latitude = FloatField()
     longitude = FloatField()
     disappear_time = DateTimeField()
-
-    class Meta:
-        primary_key = CompositeKey('encounter_id', 'disappear_time')
 
     @classmethod
     def get_active(cls):
