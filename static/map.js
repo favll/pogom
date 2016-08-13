@@ -482,6 +482,15 @@ function updateMap() {
                 item.marker = setupPokemonMarker(item);
                 map_pokemons[item.encounter_id] = item;
                 notify(item);
+            } else if (item.encounter_id in map_pokemons  && 
+                    map_pokemons[item.encounter_id].disappear_time != item.disappear_time) {
+                //update label
+                console.log ( item );
+                console.log ( map_pokemons[item.encounter_id] );
+                map_pokemons[item.encounter_id].disappear_time = item.disappear_time;
+                var label = pokemonLabel(item.pokemon_name, item.pokemon_id, item.disappear_time, item.latitude, item.longitude);
+
+                map_pokemons[item.encounter_id].marker.infoWindow.setContent(label);
             }
         });
 
