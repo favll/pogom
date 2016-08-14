@@ -56,6 +56,9 @@ class Auth:
         self._ticket_start = None
         self._ticket_end = None
         self._api_endpoint = 'https://pgorelease.nianticlabs.com/plfe/rpc'
+        
+        # if > 1 you're probably banned
+        self.code_three_counter = 0
 
     def set_api_endpoint(self, api_endpoint):
         self._api_endpoint = api_endpoint
