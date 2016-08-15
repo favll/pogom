@@ -146,7 +146,6 @@ function updateHeatMap() {
 
     });
 }
-updateHeatMap();
 
 function initMap() {
     var initLat = 40.782850;  // NYC Central Park
@@ -168,6 +167,7 @@ function initMap() {
 
     updateScanLocations(initialScanLocations);
     updateMap();
+    updateHeatMap();
 
     if(is_logged_in()) {
         // on click listener for
