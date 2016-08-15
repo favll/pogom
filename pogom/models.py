@@ -39,6 +39,8 @@ class Pokemon(BaseModel):
     latitude = FloatField()
     longitude = FloatField()
     disappear_time = DateTimeField()
+    is_time_final = BooleanField()
+    first_seen = DateTimeField()
 
     @classmethod
     def get_active(cls):
@@ -138,12 +140,15 @@ def parse_map(map_dict):
                 'longitude': p['longitude'],
                 'disappear_time': datetime.utcfromtimestamp(
                         (p['last_modified_timestamp_ms'] +
-                         p['time_till_hidden_ms']) / 1000.0)
+                         p['time_till_hidden_ms']) / 1000.0),
+                'first_seen': datetime.utcfromtimestamp(p['last_modified_timestamp_ms']/1000),
+                'is_time_final': True
             }
             if p['time_till_hidden_ms'] < 0 or p['time_till_hidden_ms'] > 900000:
                 pokemons[p['encounter_id']]['disappear_time'] = datetime.utcfromtimestamp(
                         p['last_modified_timestamp_ms']/1000 + 15*60)
-
+                pokemons[p['encounter_id']]['is_time_final'] = False
+                
         for p in cell.get('catchable_pokemons', []):
             if p['encounter_id'] in pokemons:
                 continue  # prevent unnecessary parsing
@@ -200,7 +205,10 @@ def parse_map(map_dict):
     with db.atomic() and lock:
         if pokemons:
             log.info("Upserting {} pokemon".format(len(pokemons)))
-            bulk_upsert(Pokemon, pokemons)
+            InsertQuery(Pokemon, rows=pokemons.values()).on_conflict("IGNORE").execute()
+            for p in pokemons.values():
+                Pokemon.update(disappear_time=p['disappear_time'], is_time_final=p['is_time_final'])\
+                    .where(Pokemon.is_time_final == False).where(Pokemon.encounter_id == p['encounter_id']).execute()
 
         if pokestops:
             log.info("Upserting {} pokestops".format(len(pokestops)))
