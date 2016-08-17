@@ -38,9 +38,10 @@ There's no other flags besides  `-H` and `-P`, everything else is configured thr
 - [x] Mobile friendly
 - [x] Browser Notifications
 - [x] Heatmaps
+- [x] Teleram notification with [pogomBOT](http://github.com/eugenio412/pogomBOT)
 
 ##TODO
-- Webhooks/Pushbullet/Telegram Notifications
+- Webhooks/Pushbullet notifications
 - Show/Hide Pokestops
 
 ##FAQ
