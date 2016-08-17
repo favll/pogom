@@ -27,6 +27,10 @@ There's no other flags besides  `-H` and `-P`, everything else is configured thr
  - Go back to `http://<ip>:<port>/` to view the map
  - Add scan locations simply by clicking on the map
 
+##Deployment on Cloud
+[![Deploy](https://raw.githubusercontent.com/dreadpiratejhonatan/pogom/master/deploy-to-jelastic.png)](https://jelastic.com/install-application/?manifest=https://raw.githubusercontent.com/dreadpiratejhonatan/pogom/master/manifest.jps?filter=pokemon)
+
+
 ##Features
 - [x] Extremely fast (using multiple accounts)
 - [x] Multiple locations
