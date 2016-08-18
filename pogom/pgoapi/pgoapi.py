@@ -41,7 +41,7 @@ from .auth_google import AuthGoogle
 from .exceptions import AuthException, NotLoggedInException, ServerBusyOrOfflineException, NoPlayerPositionSetException, EmptySubrequestChainException, ServerApiEndpointRedirectException, AuthTokenExpiredException
 
 from . import protos
-from POGOProtos.Networking.Requests_pb2 import RequestType
+from POGOProtos.Networking.Requests.RequestType_pb2 import RequestType
 
 logger = logging.getLogger(__name__)
 

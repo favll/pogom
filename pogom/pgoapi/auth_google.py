@@ -53,7 +53,11 @@ class AuthGoogle(Auth):
 
         user_login = perform_master_login(self.username, self.password, self.GOOGLE_LOGIN_ANDROID_ID)
 
-        refresh_token = user_login.get('Token', None)
+        try:
+            refresh_token = user_login.get('Token', None)
+        except ConnectionError as e:
+            raise AuthException("Caught ConnectionError: %s", e)
+
         if refresh_token is not None:
             self._refresh_token = refresh_token
             self.log.info('Google User Login successful.')
@@ -62,8 +66,7 @@ class AuthGoogle(Auth):
             raise AuthException("Invalid Google Username/password")
 
         self.get_access_token()
-
-        return True
+        return self._login
 
     def set_refresh_token(self, refresh_token):
         self.log.info('Google Refresh Token provided by user')
