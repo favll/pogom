@@ -44,7 +44,7 @@ document.getElementById('gyms-checkbox').checked = getFromStorage("displayGyms",
 document.getElementById('coverage-checkbox').checked = getFromStorage("displayCoverage", "true");
 
 
-$.getJSON("static/locales/pokemon.en.json").done(function(data) {
+$.getJSON("locale").done(function(data) {
 
     $.each(data, function(key, value) {
         pokeList.push( { id: key, text: value } );

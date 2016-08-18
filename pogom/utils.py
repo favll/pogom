@@ -33,16 +33,20 @@ def get_args():
 
 
 def get_pokemon_name(pokemon_id):
-    if not hasattr(get_pokemon_name, 'names'):
+    return get_locale()[str(pokemon_id)]
+
+def get_locale():
+    if (not hasattr(get_locale, 'names')
+            or config['LOCALE'] != get_locale.locale):
+        get_locale.locale = config['LOCALE']
         file_path = os.path.join(
                 config['ROOT_PATH'],
                 config['LOCALES_DIR'],
                 'pokemon.{}.json'.format(config['LOCALE']))
-
         with open(file_path, 'r') as f:
-            get_pokemon_name.names = json.loads(f.read())
+            get_locale.names = json.loads(f.read())
 
-    return get_pokemon_name.names[str(pokemon_id)]
+    return get_locale.names
 
 
 def get_encryption_lib_path():
