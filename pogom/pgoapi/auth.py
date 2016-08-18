@@ -70,7 +70,7 @@ class Auth:
         return self._auth_provider
 
     def is_login(self):
-        return self._login
+        return (self._login and self.check_access_token())
 
     def get_token(self):
         return self._access_token
