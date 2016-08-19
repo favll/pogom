@@ -22,8 +22,9 @@ else:
     db = SqliteDatabase('pogom.db', pragmas=(
         ('journal_mode', 'WAL'),
         ('cache_size', 10000),
-    ('mmap_size', 1024 * 1024 * 32),
+        ('mmap_size', 1024 * 1024 * 32),
     ))
+
 log = logging.getLogger(__name__)
 lock = threading.Lock()
 
