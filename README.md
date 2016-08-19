@@ -15,9 +15,11 @@ Heavily using [pgoapi](https://github.com/keyphact/pgoapi). Shout-out to the Unk
 
 **Pro-Tip:** Use the `-H` and `-P` flag to specify host and port. E.g. `-H "127.0.0.1" -P 5001` will tell the webserver to listen to localhost requests on port 5001. You can then head over and take a look at the map at `http://127.0.0.1:5001/`. If you want the server to listen on all public IPs use the host `0.0.0.0`. This will allow you to access your server from other machines.
 
-There's no other flags besides  `-H` and `-P`, everything else is configured through the Web UI.
+Everything else is configured through the Web UI!
 
 [![Deploy](https://raw.githubusercontent.com/favll/pogom/master/deploy-to-jelastic.png)](https://jelastic.com/install-application/?manifest=https://raw.githubusercontent.com/favll/pogom/master/manifest.jps?filter=pokemon)
+
+**Optional:** You can tell PoGoMap to use MySQL or PostgreSQL. You will need to install a python interface for the database system of your choice (i.e. `pip install mysqlclient` for MySQL or `pip install psycopg2` for PostgreSQL). You will also need to specify the `--db` flag when starting `runserver.py` and pass it a valid database url string as specified in the [Peewee docs](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#db-url).
 
 ##Usage
 
@@ -28,7 +30,6 @@ There's no other flags besides  `-H` and `-P`, everything else is configured thr
    - Optionally protect the configuration with a password (only authenticated users can access the config and change scan locations)
  - Go back to `http://<ip>:<port>/` to view the map
  - Add scan locations simply by clicking on the map
- - 
 
 ##Features
 - [x] Extremely fast (using multiple accounts)
@@ -41,7 +42,7 @@ There's no other flags besides  `-H` and `-P`, everything else is configured thr
 - [x] Mobile friendly
 - [x] Browser Notifications
 - [x] Heatmaps
-- [x] Teleram notification with [pogomBOT](http://github.com/eugenio412/pogomBOT)
+- [x] Telegram notification with [pogomBOT](http://github.com/eugenio412/pogomBOT)
 
 ##TODO
 - Webhooks/Pushbullet notifications
