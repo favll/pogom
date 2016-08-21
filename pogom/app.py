@@ -218,7 +218,7 @@ class Pogom(Flask):
     def stats(self):
         stats = Pokemon.get_stats()
         count = sum(p['count'] for p in stats)
-        return render_template('stats.html', pokemons=Pokemon.get_stats(), total=count)
+        return render_template('stats.html', pokemons=stats, total=count)
 
     def locale(self):
         return jsonify(get_locale())

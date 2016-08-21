@@ -65,7 +65,7 @@ class Pokemon(BaseModel):
     @classmethod
     def get_stats(cls):
         query = (Pokemon
-                 .select(Pokemon.pokemon_id, fn.COUNT(Pokemon.pokemon_id).alias('count'))
+                 .select(Pokemon.pokemon_id, fn.COUNT(Pokemon.pokemon_id).alias('count'), fn.MAX(Pokemon.disappear_time).alias('lastseen'))
                  .group_by(Pokemon.pokemon_id)
                  .order_by(-SQL('count'))
                  .dicts())
@@ -74,7 +74,7 @@ class Pokemon(BaseModel):
 
         known_pokemon = set( p['pokemon_id'] for p in query )
         unknown_pokemon = set(range(1,151)).difference(known_pokemon)
-        pokemons.extend( { 'pokemon_id': i, 'count': 0 } for i in unknown_pokemon)
+        pokemons.extend( { 'pokemon_id': i, 'count': 0, 'lastseen': None } for i in unknown_pokemon)
 
         for p in pokemons:
             p['pokemon_name'] = get_pokemon_name(p['pokemon_id'])

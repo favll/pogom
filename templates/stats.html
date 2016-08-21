@@ -46,6 +46,7 @@
                 <th class="col-sm-1 text-right">ID</th>
                 <th class="col-sm-1">Icon</th>
                 <th>Name</th>
+                <th class="col-sm-1">Last seen</th>
                 <th class="text-right">Count</th>
                 <th class="text-right">%</th>
                 <th class="notify">Notify</th>
@@ -64,6 +65,13 @@
                         <img width="32px" height="32px" src='static/icons/{{pokemon.pokemon_id}}.png'>
                     </td>
                     <td><strong>{{pokemon.pokemon_name}}</strong></td>
+                    <td class="col-sm-1">
+                        {% if pokemon.lastseen is not none %}   
+                            {{ pokemon.lastseen.strftime('%d %b %H:%M:%S') }}
+                        {% else %}
+                            never
+                        {%endif %}
+                    </td>
                     <td class="text-right col-sm-1" data-sort-value="{{ pokemon.count }}">
                         {{ '{:,}'.format(pokemon.count)}}
                     </td>
