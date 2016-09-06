@@ -173,7 +173,13 @@ class PGoApiWorker(Thread):
 
         self._work_queue = work_queue
         self._auth_queue = auth_queue
+
+        self._session = requests.session()
+        self._session.headers.update({'User-Agent': 'Niantic App'})
+        self._session.verify = True
+
         self.rpc_api = RpcApi(None)
+        self.rpc_api._session = self._session
         self.rpc_api.activate_signature(signature_lib_path)
 
     def _get_auth_provider(self):
@@ -255,7 +261,7 @@ class PGoApiWorker(Thread):
                 auth_provider.set_api_endpoint('https://{}/rpc'.format(e.get_redirected_endpoint()))
             except Exception as e:  # Never crash the worker
                 if isinstance(e, ServerBusyOrOfflineException):
-                    self.log.info('Server seems to be busy or offline!')
+                    self.log.info('Server seems to be busy or offline: {}'.format(e))
                 else:
                     self.log.info('Unexpected error during request: {}'.format(e))
                 if retries == 0:
