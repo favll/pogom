@@ -67,7 +67,7 @@
                     <td><strong>{{pokemon.pokemon_name}}</strong></td>
                     <td class="col-sm-1">
                         {% if pokemon.lastseen is not none %}   
-                            {{ pokemon.lastseen.strftime('%d %b %H:%M:%S') }}
+                            {{ pokemon.lastseen.strftime('%d %b, %H:%M') }}
                         {% else %}
                             never
                         {%endif %}
